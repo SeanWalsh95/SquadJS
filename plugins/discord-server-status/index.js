@@ -117,6 +117,13 @@ function makeEmbed(server, options) {
       value: `steam://connect/${server.host}:${server.queryPort}`
     });
 
+  const layerImg = { url: '' };
+  if (server.currentLayer) {
+    layerImg.url = `https://raw.githubusercontent.com/SeanWalsh95/SquadMaps/master/img/screens/${server.currentLayer
+      .split(' ')
+      .join('_')}.png`;
+  }
+
   return {
     embed: {
       title: server.serverName,
@@ -124,6 +131,7 @@ function makeEmbed(server, options) {
         ? parseInt(gradient.rgbAt(server.playerCount / server.publicSlots).toHex(), 16)
         : options.color,
       fields: fields,
+      image: layerImg,
       timestamp: new Date().toISOString(),
       footer: {
         text: `Server Status by ${COPYRIGHT_MESSAGE}`

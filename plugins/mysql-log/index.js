@@ -1,5 +1,6 @@
 import {
   NEW_GAME,
+  TEAMKILL,
   PLAYER_WOUNDED,
   PLAYER_DIED,
   PLAYER_REVIVED,
@@ -46,6 +47,14 @@ export default {
 
   init: async (server, options) => {
     const serverID = options.overrideServerID === null ? server.id : options.overrideServerID;
+
+
+    server.on(TEAMKILL, (info) => {
+      options.mysqlPool.query(
+        'INSERT INTO Teamkills(attackerS64, attackerName, victimS64, victimName, weapon) VALUES (?,?,?,?,?)',
+        [info.attacker.steamID, info.attacker.name, info.victim.steamID, info.victim.name, info.weapon]
+      );
+    });
 
     server.on(TICK_RATE, (info) => {
       options.mysqlPool.query(

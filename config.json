@@ -11,11 +11,11 @@
     "ftpPort": 21,
     "ftpUser": "FTP Username",
     "ftpPassword": "FTP Password",
-    "ftpUseListForSize": false
+    "ftpUseListForSize": false,
+    "adminLists": []
   },
   "connectors": {
     "discord": "Discord Login Token",
-    "remoteAdminLists": [],
     "squadlayerpool": {
       "type": "buildPoolFromFilter",
       "filter": {
@@ -71,13 +71,11 @@
     {
       "plugin": "AutoKickUnassigned",
       "enabled": true,
-      "adminList": "remoteAdminLists",
       "warningMessage": "Join a squad, you are are unassigned and will be kicked",
       "kickMessage": "Unassigned - automatically removed",
       "frequencyOfWarnings": 30,
       "unassignedTimer": 6,
       "playerThreshold": 93,
-      "queueThreshold": -1,
       "roundStartDelay": 15,
       "ignoreAdmins": false,
       "ignoreWhitelist": false
@@ -172,6 +170,14 @@
       "enabled": false,
       "discordClient": "discord",
       "role": ""
+    },
+    {
+      "plugin": "DiscordTeamkill",
+      "enabled": true,
+      "discordClient": "discord",
+      "channelID": "",
+      "color": 16761867,
+      "disableSCBL": false
     },
     {
       "plugin": "IntervalledBroadcasts",

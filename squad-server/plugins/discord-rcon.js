@@ -1,6 +1,6 @@
-import BasePlugin from './base-plugin.js';
+import DiscordBasePlugin from './discord-base-plugin.js';
 
-export default class DiscordRcon extends BasePlugin {
+export default class DiscordRcon extends DiscordBasePlugin {
   static get description() {
     return (
       'The <code>DiscordRcon</code> plugin allows a specified Discord channel to be used as a RCON console to ' +
@@ -14,12 +14,7 @@ export default class DiscordRcon extends BasePlugin {
 
   static get optionsSpecification() {
     return {
-      discordClient: {
-        required: true,
-        description: 'Discord connector name.',
-        connector: 'discord',
-        default: 'discord'
-      },
+      ...DiscordBasePlugin.optionsSpecification,
       channelID: {
         required: true,
         description: 'ID of channel to turn into RCON console.',
@@ -52,7 +47,7 @@ export default class DiscordRcon extends BasePlugin {
 
     this.options.discordClient.on('message', async (message) => {
       // check the author of the message is not a bot and that the channel is the RCON console channel
-      if (message.author.bot || message.channel.id !== this.channelID) return;
+      if (message.author.bot || message.channel.id !== options.channelID) return;
 
       let command = message.content;
 

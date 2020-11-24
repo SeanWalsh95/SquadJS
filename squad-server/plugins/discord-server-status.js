@@ -45,6 +45,9 @@ export default class DiscordServerStatus extends BasePlugin {
     super(server, options, optionsRaw);
 
     setInterval(async () => {
+      this.currLayer = (this.server.layerHistory[0] === undefined) ? 'Unknown' : this.server.layerHistory[0].layer;
+      this.nextLayer = (this.server.nextLayer === undefined) ? 'Unknown' : this.server.nextLayer;
+
       for (const messageID of this.options.messageIDs) {
         try {
           const channel = await this.options.discordClient.channels.fetch(messageID.channelID);
@@ -57,9 +60,7 @@ export default class DiscordServerStatus extends BasePlugin {
       }
 
       await this.options.discordClient.user.setActivity(
-        `(${this.server.a2sPlayerCount}/${this.server.publicSlots}) ${
-          this.server.layerHistory[0].layer || 'Unknown'
-        }`,
+        `(${this.server.a2sPlayerCount}/${this.server.publicSlots}) ${this.currLayer}`,
         { type: 'WATCHING' }
       );
     }, this.options.updateInterval);
@@ -82,12 +83,12 @@ export default class DiscordServerStatus extends BasePlugin {
       },
       {
         name: 'Current Layer',
-        value: `\`\`\`${this.server.layerHistory[0].layer || 'Unknown'}\`\`\``,
+        value: `\`\`\`${this.currLayer}\`\`\``,
         inline: true
       },
       {
         name: 'Next Layer',
-        value: `\`\`\`${this.server.nextLayer || 'Unknown'}\`\`\``,
+        value: `\`\`\`${this.nextLayer}\`\`\``,
         inline: true
       }
     ];

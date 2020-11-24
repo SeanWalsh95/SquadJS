@@ -84,7 +84,7 @@ export default class DiscordRcon extends DiscordBasePlugin {
 
   async respondToMessage(message, response) {
     for (const splitResponse of this.splitLongResponse(response))
-      await message.channel.send(`\`\`\`${splitResponse}\`\`\``);
+      await message.channel.send(`${message.member.displayName}:\n\`\`\`${splitResponse}\`\`\``);
   }
 
   splitLongResponse(response) {

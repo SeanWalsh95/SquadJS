@@ -57,48 +57,55 @@ export default class DiscordAdminRequest extends DiscordBasePlugin {
     };
   }
 
-  constructor(server, options, optionsRaw) {
-    super(server, options, optionsRaw);
+  constructor(server, options, connectors) {
+    super(server, options, connectors);
 
-    this.lastPing = Date.now() - this.pingDelay;
+    this.lastPing = Date.now() - this.options.pingDelay;
 
-    this.server.on(`CHAT_COMMAND:${this.options.command}`, async (info) => {
-      if (this.options.ignoreChats.includes(info.chat)) return;
-
-      for (const ignorePhrase of this.options.ignorePhrases) {
-        if (info.message.includes(ignorePhrase)) return;
-      }
-
-      if (info.message.length === 0) {
-        await this.server.rcon.warn(
-          info.player.steamID,
-          `Please specify what you would like help with when requesting an admin.`
-        );
-        return;
-      }
-
-      this.sendAdminRequest(info);
-
-    });
-
-    
-    this.server.on(`CHAT_MESSAGE`, async (info) => {
-      if (!(info.message.toLowerCase().includes(this.command))) return;
-
-      if (this.options.ignoreChats.includes(info.chat)) return;
-
-      for (const ignorePhrase of this.options.ignorePhrases) {
-        if (info.message.includes(ignorePhrase)) return;
-      }
-
-      this.sendAdminRequest(info);
-
-    });
+    this.onChatCommand = this.onChatCommand.bind(this);
   }
 
-  
-  async sendAdminRequest(info) {
+  mount() {
+    this.server.on(`CHAT_COMMAND:${this.options.command}`, this.onChatCommand);
+    this.server.on(`CHAT_MESSAGE`, this.onChatMessage);
+  }
 
+  unmount() {
+    this.server.removeEventListener(`CHAT_COMMAND:${this.options.command}`, this.onChatCommand);
+    this.server.removeEventListener(`CHAT_MESSAGE`, this.onChatMessage);
+  }
+
+  async onChatMessage(info) {
+    if (!info.message.toLowerCase().includes(this.command)) return;
+
+    if (this.options.ignoreChats.includes(info.chat)) return;
+
+    for (const ignorePhrase of this.options.ignorePhrases) {
+      if (info.message.includes(ignorePhrase)) return;
+    }
+
+    this.sendAdminRequest(info);
+  }
+
+  async onChatCommand(info) {
+    if (this.options.ignoreChats.includes(info.chat)) return;
+
+    for (const ignorePhrase of this.options.ignorePhrases) {
+      if (info.message.includes(ignorePhrase)) return;
+    }
+
+    if (info.message.length === 0) {
+      await this.server.rcon.warn(
+        info.player.steamID,
+        `Please specify what you would like help with when requesting an admin.`
+      );
+      return;
+    }
+
+    this.sendAdminRequest(info);
+  }
+
+  async sendAdminRequest(info) {
     const message = {
       embed: {
         title: `${info.player.name} has requested admin support!`,
@@ -127,16 +134,13 @@ export default class DiscordAdminRequest extends DiscordBasePlugin {
       }
     };
 
-    if (
-      this.options.pingGroups.length > 0 &&
-      Date.now() - this.options.pingDelay > this.lastPing
-    ) {
+    if (this.options.pingGroups.length > 0 && Date.now() - this.options.pingDelay > this.lastPing) {
       message.content = this.options.pingGroups.map((groupID) => `<@&${groupID}>`).join(' ');
       this.lastPing = Date.now();
     }
-    
+
     await this.sendDiscordMessage(message);
-    
+
     await this.server.rcon.warn(
       info.player.steamID,
       `An admin has been notified, please wait for us to get back to you.`

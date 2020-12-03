@@ -41,29 +41,38 @@ export default class DiscordServerStatus extends BasePlugin {
     };
   }
 
-  constructor(server, options, optionsRaw) {
-    super(server, options, optionsRaw);
+  constructor(server, options, connectors) {
+    super(server, options, connectors);
 
-    setInterval(async () => {
-      this.currLayer = (this.server.layerHistory[0] === undefined) ? 'Unknown' : this.server.layerHistory[0].layer;
-      this.nextLayer = (this.server.nextLayer === undefined) ? 'Unknown' : this.server.nextLayer;
+    this.update = this.update.bind(this);
+  }
 
-      for (const messageID of this.options.messageIDs) {
-        try {
-          const channel = await this.options.discordClient.channels.fetch(messageID.channelID);
-          const message = await channel.messages.fetch(messageID.messageID);
+  mount() {
+    this.interval = setInterval(this.update, this.options.updateInterval);
+  }
 
-          await message.edit(this.getEmbed());
-        } catch (err) {
-          console.log(err);
-        }
+  unmount() {
+    clearInterval(this.interval);
+  }
+
+  async update() {
+    for (const messageID of this.options.messageIDs) {
+      try {
+        const channel = await this.options.discordClient.channels.fetch(messageID.channelID);
+        const message = await channel.messages.fetch(messageID.messageID);
+
+        await message.edit(this.getEmbed());
+      } catch (err) {
+        console.log(err);
       }
+    }
 
-      await this.options.discordClient.user.setActivity(
-        `(${this.server.a2sPlayerCount}/${this.server.publicSlots}) ${this.currLayer}`,
-        { type: 'WATCHING' }
-      );
-    }, this.options.updateInterval);
+    await this.options.discordClient.user.setActivity(
+      `(${this.server.a2sPlayerCount}/${this.server.publicSlots}) ${
+        this.server.layerHistory[0].layer || 'Unknown'
+      }`,
+      { type: 'WATCHING' }
+    );
   }
 
   getEmbed() {

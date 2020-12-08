@@ -18,6 +18,9 @@ export default async function fetchAdminLists(adminLists) {
     try {
       let data = '';
 
+      if (!list.type) throw new Error(`AdminList in config has no 'type'`);
+      if (!list.source) throw new Error(`AdminList in config has no 'source'`);
+
       switch (list.type) {
         case 'remote': {
           const resp = await axios({

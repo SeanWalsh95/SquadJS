@@ -1,6 +1,5 @@
 import DiscordBasePlugin from './discord-base-plugin.js';
-
-var squadDateRegx = /(?<year>[0-9]{4})\.(?<month>[0-9]{2})\.(?<day>[0-9]{2})-(?<hour>[0-9]{2}).(?<minute>[0-9]{2}).(?<second>[0-9]{2}):(?<milisecond>[0-9]{3})/;
+import Logger from 'core/logger';
 
 export default class DiscordSusPlayerLog extends DiscordBasePlugin {
   static get description() {
@@ -24,6 +23,22 @@ export default class DiscordSusPlayerLog extends DiscordBasePlugin {
         required: false,
         description: 'Send activity to API?',
         default: false
+      },
+      thingsToLookFor: {
+        required: true,
+        description: 'List of weapons of intrest to watch for',
+        default: [],
+        example: ['40MM']
+      },
+      susProjectileCount: {
+        required: false,
+        description: 'number of projectiles within the purge limit',
+        default: 5,
+      },
+      projectilePurgeAfter: {
+        required: false,
+        description: 'Time in minutes before a projectile is purged',
+        default: 1.5,
       }
     };
   }
@@ -40,11 +55,12 @@ export default class DiscordSusPlayerLog extends DiscordBasePlugin {
   constructor(server, options, optionsRaw) {
     super(server, options, optionsRaw);
 
-    const suspiciousThreshold = 5;
-    const purgeAfter = 3;
-    const weaponsOfIntrest = ['40MM'];
+    this.playerCounter = {};
 
-    let playerCounter = {};
+    this.suspiciousThreshold = this.options.susProjectileCount; //number of events within purge limit
+    this.purgeAfter = this.options.projectilePurgeAfter; //minutes
+
+    const weaponsOfIntrest = this.options.thingsToLookFor;
 
     this.server.on('PLAYER_DAMAGED', async (info) => {
       if (!weaponsOfIntrest.some((r) => info.weapon.includes(r))) return;
@@ -52,56 +68,76 @@ export default class DiscordSusPlayerLog extends DiscordBasePlugin {
       // Copy data to new Object
       var event = Object.assign({}, info);
 
-      // Parse timestamp in event to JS Date
-      const d = event.time.match(squadDateRegx).groups;
-      event.time = Date.parse(
-        `${d.year}-${d.month}-${d.day}T${d.hour}:${d.minute}:${d.second}.${d.milisecond}`
-      );
+      if(event.attacker && event.attacker.steamID){
+        const steamID = event.attacker.steamID;
+        const weaponID = event.weapon;
+        const projectileID = event.projectileID;
 
-      const steamID = event.attacker.steamID;
-      const projectileID = event.projectileID;
 
-      // Track player if not currently tracked
-      if (!(steamID in playerCounter)) playerCounter[steamID] = {};
+        // Track player if not currently tracked
+        if (!(steamID in this.playerCounter)) this.playerCounter[steamID] = {};
+        var _weapons = this.playerCounter[steamID];
 
-      // Track projectile if not currently tracked
-      if (!(projectileID in playerCounter[steamID]))
-        playerCounter[steamID][projectileID] = {
-          player: event.attacker,
-          events: [],
-          loggedTime: Date.now()
-        };
+        //Track weapon if not tracked
+        if(!(weaponID in _weapons)) _weapons[weaponID] = {};
+        var _projectiles = _weapons[weaponID]
 
-      // Push current event to projectile list (can be removed if needed, only need to track distinct projectiles)
-      playerCounter[steamID][projectileID].events.push(event);
+        // Track projectile if not currently tracked
+        if (!(projectileID in _projectiles)) {
+          _projectiles[projectileID] = {
+            firstEvent: event,
+            events: 0,
+            loggedTime: Date.now()
+          };
+        }
+        _projectiles[projectileID].events++;
+
+        if( Object.keys(_projectiles).length >= this.suspiciousThreshold ){
+          Logger.verbose('SusLog', 1, `Suspicious Player: ${event.attacker.name}(${steamID}) using ${event.weapon} ${JSON.stringify(Object.keys( _projectiles ))}`);
+          //this.logPlayer(event);
+        }
+
+        let tmp = {};
+        for (const [weaponID, projectileDict] of Object.entries( _weapons )) {
+          tmp[weaponID] = Object.keys(projectileDict);
+        }
+        Logger.verbose('SusLog', 3, `(${event.attacker.name}) ${JSON.stringify(tmp)}`);
+      }
     });
 
+    
     // Interval to purge old data
     setInterval(() => {
       const time = Date.now();
-
       // Remove old entries from playerCounter
       for (const steamID in this.playerCounter) {
-        playerCounter[steamID] = Object.fromEntries(
-          Object.entries(playerCounter[steamID]).filter(([k, v]) => {
-            return time < v.loggedTime + 1000 * 60 * purgeAfter;
-          })
-        );
+        for (const weaponID in this.playerCounter[steamID]){
+          this.playerCounter[steamID][weaponID] = Object.fromEntries(
+            Object.entries( this.playerCounter[steamID][weaponID] ).filter(([ projectileID, meta ]) => {
+              return time < meta.loggedTime + 1000 * 60 * this.purgeAfter;
+            })
+          );
+        }
       }
 
       // check if ammount remaining after purge is over threshold
       for (const steamID in this.playerCounter) {
-        if (Object.keys(playerCounter[steamID]).length > suspiciousThreshold) {
-          this.logPlayer(Object.entries(playerCounter[steamID])[0]);
+        for (const weaponID in this.playerCounter[steamID]){
+          let projectiles = this.playerCounter[steamID][weaponID]
+          if( Object.keys(projectiles).length > this.suspiciousThreshold ){
+            this.logPlayer( Object.values(projectiles)[0].firstEvent );
+          }
         }
       }
-    }, 1000 * 60 * purgeAfter);
+    }, 1000 * 60 * 1);
 
     // Reset counter on new game
     server.on('NEW_GAME', async (info) => {
-      playerCounter = {};
+      this.playerCounter = {};
     });
+
   }
+  
 
   async logPlayer(info) {
     const message = {

@@ -42,8 +42,8 @@ export default class SquadServerFactory {
     for (const pluginConfig of config.plugins) {
       if (!pluginConfig.enabled) continue;
 
-      if (!plugins[pluginConfig.plugin])
-        throw new Error(`Plugin ${pluginConfig.plugin} does not exist.`);
+      // skip if plugin from config is undefined
+      if (!plugins[pluginConfig.plugin]) continue;
 
       const Plugin = plugins[pluginConfig.plugin];
 
@@ -79,8 +79,14 @@ export default class SquadServerFactory {
     for (const pluginConfig of config.plugins) {
       if (!pluginConfig.enabled) continue;
 
-      if (!plugins[pluginConfig.plugin])
-        throw new Error(`Plugin ${pluginConfig.plugin} does not exist.`);
+      if (!plugins[pluginConfig.plugin]) {
+        Logger.verbose(
+          'SquadServerFactory',
+          1,
+          `WARNING: plugin "${pluginConfig.plugin}" is not defined continuing...`
+        );
+        continue;
+      }
 
       const Plugin = plugins[pluginConfig.plugin];
 
@@ -114,7 +120,10 @@ export default class SquadServerFactory {
     }
 
     if (type === 'sequelize') {
-      const connector = new Sequelize(connectorConfig);
+      const mergedConfig = Object.assign({}, connectorConfig, {
+        logging: (msg) => Logger.verbose('MySQL', 2, msg)
+      });
+      const connector = new Sequelize(mergedConfig);
       await connector.authenticate();
       return connector;
     }

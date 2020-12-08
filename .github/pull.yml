@@ -1,5 +1,5 @@
 version: "1"
 rules:
   - base: master
-    upstream: Thomas-Smyth:v2
+    upstream: Thomas-Smyth:beta
     mergeMethod: hardreset

@@ -21,6 +21,7 @@ export default class SquadServer extends EventEmitter {
     for (const option of ['host', 'queryPort'])
       if (!(option in options)) throw new Error(`${option} must be specified.`);
 
+    this.id = options.id;
     this.options = options;
 
     this.layerHistory = [];
@@ -139,11 +140,10 @@ export default class SquadServer extends EventEmitter {
     });
 
     this.logParser.on('NEW_GAME', (data) => {
-      let layer;
-      if (data.layer) layer = this.squadLayers.getLayerByLayerName(data.layer);
-      else layer = this.squadLayers.getLayerByLayerClassname(data.layerClassname);
+      if (data.layer) data.layer = this.squadLayers.getLayerByLayerName(data.layer);
+      else data.layer = this.squadLayers.getLayerByLayerClassname(data.layerClassname);
 
-      this.layerHistory.unshift({ ...layer, time: data.time });
+      this.layerHistory.unshift({ ...data.layer, time: data.time });
       this.layerHistory = this.layerHistory.slice(0, this.layerHistoryMaxLength);
 
       this.emit('NEW_GAME', data);
@@ -192,7 +192,6 @@ export default class SquadServer extends EventEmitter {
 
     this.logParser.on('PLAYER_DIED', async (data) => {
       data.victim = await this.getPlayerByName(data.victimName);
-      data.attacker = await this.getPlayerByName(data.attackerName);
 
       if (data.victim && data.attacker)
         data.teamkill =
@@ -290,6 +289,9 @@ export default class SquadServer extends EventEmitter {
         if (player.squadID !== oldPlayerInfo[player.steamID].squadID)
           this.emit('PLAYER_SQUAD_CHANGE', player);
       }
+
+      this.emit('UPDATED_PLAYER_INFORMATION');
+
     } catch (err) {
       Logger.verbose('SquadServer', 1, 'Failed to update player list.', err);
     }
@@ -315,6 +317,8 @@ export default class SquadServer extends EventEmitter {
       }
 
       this.nextLayer = layerInfo.nextLayer;
+
+      this.emit('UPDATED_LAYER_INFORMATION');
     } catch (err) {
       Logger.verbose('SquadServer', 1, 'Failed to update layer information.', err);
     }
@@ -351,6 +355,8 @@ export default class SquadServer extends EventEmitter {
 
       this.matchTimeout = parseFloat(data.raw.rules.MatchTimeout_f);
       this.gameVersion = data.raw.version;
+
+      this.emit('UPDATED_A2S_INFORMATION');
     } catch (err) {
       Logger.verbose('SquadServer', 1, 'Failed to update A2S information.', err);
     }

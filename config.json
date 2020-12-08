@@ -16,6 +16,7 @@
   },
   "connectors": {
     "discord": "Discord Login Token",
+    "remoteAdminLists": [],
     "squadlayerpool": {
       "type": "buildPoolFromFilter",
       "filter": {
@@ -54,12 +55,12 @@
       }
     },
     "mysql": {
-      "connectionLimit": 10,
       "host": "host",
       "port": 3306,
-      "user": "squadjs",
+      "username": "squadjs",
       "password": "password",
-      "database": "squadjs"
+      "database": "squadjs",
+      "dialect": "mysql"
     }
   },
   "plugins": [
@@ -71,11 +72,13 @@
     {
       "plugin": "AutoKickUnassigned",
       "enabled": true,
+      "adminList": "remoteAdminLists",
       "warningMessage": "Join a squad, you are are unassigned and will be kicked",
       "kickMessage": "Unassigned - automatically removed",
       "frequencyOfWarnings": 30,
       "unassignedTimer": 6,
       "playerThreshold": 93,
+      "queueThreshold": -1,
       "roundStartDelay": 15,
       "ignoreAdmins": false,
       "ignoreWhitelist": false
@@ -91,6 +94,12 @@
           "ignoreChats": []
         }
       ]
+    },
+    {
+      "plugin": "DBLog",
+      "enabled": false,
+      "database": "mysql",
+      "overrideServerID": null
     },
     {
       "plugin": "DiscordAdminBroadcast",

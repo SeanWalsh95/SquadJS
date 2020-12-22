@@ -126,6 +126,17 @@
       "color": 16761867
     },
     {
+      "plugin": "DiscordAwnAutoWhitelist",
+      "enabled": false,
+      "discordClient": "discord",
+      "awnAPI": "awnAPI",
+      "database": "mysql",
+      "serverID": "",
+      "channelID": "",
+      "whitelistModerator": "",
+      "whitelistRoles": {}
+    },
+    {
       "plugin": "DiscordChat",
       "enabled": true,
       "discordClient": "discord",

@@ -18,12 +18,12 @@ class ListEntry {
 
 export default class DiscordAwnAutoWhitelist extends DiscordBasePlugin {
   static get description() {
-    return 'Automatacally push matching DiscordID:SteamID pairs out to AWN Admin List where a users SteamID has a given role in Discord\n'+
-    '👍 = User added to list successfully\n'+
-    '👎 = Discord user does not have approprate role to be added\n'+
-    '👌 = User already in list as defined\n'+
-    '⏏️ = User already in list with diffrent Steam64ID click to overwrite old ID\n'+
-    '❌ = An Error occurred attempting to add user to list';
+    return 'Automatacally push matching DiscordID:SteamID pairs out to AWN Admin List where a users SteamID has a given role in Discord<br>'+
+    '<ul><li>👍 = User added to list successfully</li>'+
+    '<li>👎 = Discord user does not have approprate role to be added</li>'+
+    '<li>👌 = User already in list as defined</li>'+
+    '<li>⏏️ = User already in list with diffrent Steam64ID click to overwrite old ID</li>'+
+    '<li>❌ = An Error occurred attempting to add user to list</li></ul>';
   }
 
   static get defaultEnabled() {

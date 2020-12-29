@@ -110,7 +110,7 @@ export default class DiscordAwnAutoWhitelist extends DiscordBasePlugin {
       }
     };
 
-    this.db = this.options.database.define(`AutoWL_Log`, schema, { timestamps: false });
+    this.wlLog = this.options.database.define(`AutoWL_Log`, schema, { timestamps: false });
 
     this.onMessage = this.onMessage.bind(this);
 
@@ -121,7 +121,7 @@ export default class DiscordAwnAutoWhitelist extends DiscordBasePlugin {
   }
 
   async prepareToMount() {
-    await this.db.sync();
+    await this.wlLog.sync();
   }
 
   async mount() {
@@ -199,7 +199,7 @@ export default class DiscordAwnAutoWhitelist extends DiscordBasePlugin {
     // Begin valadation of Entry into AdminList
 
     // Lookup discord user from DB of Admin List entrys
-    const lookup = await this.db.findOne({
+    const lookup = await this.wlLog.findOne({
       where: { discordID: entry.member.id }
     });
 
@@ -252,7 +252,7 @@ export default class DiscordAwnAutoWhitelist extends DiscordBasePlugin {
     const guild = await this.discord.guilds.fetch(this.options.serverID);
 
     const inactiveMembersList = [];
-    for (const row of await this.db.findAll()) {
+    for (const row of await this.wlLog.findAll()) {
       const listID = this.getMemberListID(await guild.members.resolve(row.discordID));
       if (listID == null) inactiveMembersList.push(row);
     }
@@ -337,7 +337,7 @@ export default class DiscordAwnAutoWhitelist extends DiscordBasePlugin {
   async addAdmin(entry) {
     const resAwn = await this.awn.addAdmin(entry.listID, entry.steamID);
     if (resAwn.success) {
-      const resSql = await this.db.upsert({
+      const resSql = await this.wlLog.upsert({
         discordID: entry.member.id,
         steamID: entry.steamID,
         awnAdminID: resAwn.data.id,
@@ -361,7 +361,7 @@ export default class DiscordAwnAutoWhitelist extends DiscordBasePlugin {
   async removeAdmin(discordID, awnListID, awnAdminID) {
     const res = await this.awn.removeAdmin(awnListID, awnAdminID);
     if (res.success) {
-      const resSql = this.db.destroy({ where: { discordID: discordID } });
+      const resSql = this.wlLog.destroy({ where: { discordID: discordID } });
       this.verbose(3, resSql);
       return Boolean(resSql);
     }

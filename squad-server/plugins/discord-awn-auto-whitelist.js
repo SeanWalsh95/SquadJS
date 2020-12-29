@@ -9,21 +9,23 @@ const steamIdRgx = /(765\d{14})/;
 
 class ListEntry {
   constructor() {
-    this.source = 'unknown'; // Source of the whitelist request 
-    this.member = null;      // DiscordJS Member object of the user looking for whitelist.
-    this.steamID = null;     // Steam64ID of to be added to the whitelist
-    this.listID = null;      // AWN Admin List ID
+    this.source = 'unknown'; // Source of the whitelist request
+    this.member = null; // DiscordJS Member object of the user looking for whitelist.
+    this.steamID = null; // Steam64ID of to be added to the whitelist
+    this.listID = null; // AWN Admin List ID
   }
 }
 
 export default class DiscordAwnAutoWhitelist extends DiscordBasePlugin {
   static get description() {
-    return 'Automatacally push matching DiscordID:SteamID pairs out to AWN Admin List where a users SteamID has a given role in Discord<br>'+
-    '<ul><li>👍 = User added to list successfully</li>'+
-    '<li>👎 = Discord user does not have approprate role to be added</li>'+
-    '<li>👌 = User already in list as defined</li>'+
-    '<li>⏏️ = User already in list with diffrent Steam64ID click to overwrite old ID</li>'+
-    '<li>❌ = An Error occurred attempting to add user to list</li></ul>';
+    return (
+      'Automatacally push matching DiscordID:SteamID pairs out to AWN Admin List where a users SteamID has a given role in Discord<br>' +
+      '<ul><li>👍 = User added to list successfully</li>' +
+      '<li>👎 = Discord user does not have approprate role to be added</li>' +
+      '<li>👌 = User already in list as defined</li>' +
+      '<li>⏏️ = User already in list with diffrent Steam64ID click to overwrite old ID</li>' +
+      '<li>❌ = An Error occurred attempting to add user to list</li></ul>'
+    );
   }
 
   static get defaultEnabled() {
@@ -112,7 +114,7 @@ export default class DiscordAwnAutoWhitelist extends DiscordBasePlugin {
 
     this.onMessage = this.onMessage.bind(this);
 
-    //prune users every 15 minutes
+    // prune users every 15 minutes
     setInterval(async () => {
       await this.pruneUsers();
     }, 1000 * 60 * 15);
@@ -150,9 +152,8 @@ export default class DiscordAwnAutoWhitelist extends DiscordBasePlugin {
     }
 
     if (message.content.match(steamIdRgx) || message.content.match(/steamcommunity.com/)) {
-      const reaction = await this.validateEntry(message, entry);
+      const reaction = await this.parseDiscordMessage(message);
       message.react(reaction);
-      return;
     }
   }
 
@@ -160,7 +161,7 @@ export default class DiscordAwnAutoWhitelist extends DiscordBasePlugin {
    * Parses given discord message for discord/steam Id's
    *
    * @param {Object} message  - A discord.js message object
-   * @returns {Object} ListEntry - An AdminList entry
+   * @returns {String} Emoji - An emoji responce to the original message
    */
   async parseDiscordMessage(message) {
     const entry = new ListEntry();
@@ -195,9 +196,7 @@ export default class DiscordAwnAutoWhitelist extends DiscordBasePlugin {
     if (matchSteamId) entry.steamID = matchSteamId[1];
     else return '❌';
 
-
     // Begin valadation of Entry into AdminList
-
 
     // Lookup discord user from DB of Admin List entrys
     const lookup = await this.db.findOne({
@@ -220,7 +219,7 @@ export default class DiscordAwnAutoWhitelist extends DiscordBasePlugin {
 
       // User chooses to overwrite existing entry
       if (collection.first().emoji.name === '⏏️') {
-        const res = await this.overwiteAdmin(lookup, entry);
+        const res = await this.overwriteAdmin(lookup, entry);
         await message.reactions.removeAll();
         if (res) return '👍';
         else return '❌';
@@ -267,21 +266,21 @@ export default class DiscordAwnAutoWhitelist extends DiscordBasePlugin {
 
   /**
    * updates list from AWN with latest data, adds the attrabute 'steam64IDs' for a quick lookup of all admins in the list
-   * returns the updated list or false if the API request failed 
-   * 
+   * returns the updated list or false if the API request failed
+   *
    * @param {String} awnListID - ID of list from AWN to update
    */
   async updateList(awnListID) {
     const res = await this.awn.getAdminList(awnListID);
     if (res.success) {
       const s64Ids = res.data.admins
-      .filter((a) => {
-        return a.type === 'steam64';
-      })
-      .map((a) => {
-        return a.value;
-      });
-      let ret = Object.assign(res.data, { steam64IDs: s64Ids });
+        .filter((a) => {
+          return a.type === 'steam64';
+        })
+        .map((a) => {
+          return a.value;
+        });
+      const ret = Object.assign(res.data, { steam64IDs: s64Ids });
       this.lists[res.data.id] = ret;
       return ret;
     } else {
@@ -289,7 +288,7 @@ export default class DiscordAwnAutoWhitelist extends DiscordBasePlugin {
       return false;
     }
   }
-  
+
   /**
    * loads all admin lists defined in Options from AWN API.
    */
@@ -332,7 +331,7 @@ export default class DiscordAwnAutoWhitelist extends DiscordBasePlugin {
 
   /**
    * Add admin to AWN Admin List
-   * 
+   *
    * @param {ListEntry} entry - ListEntry Object for the member to be added
    */
   async addAdmin(entry) {
@@ -354,7 +353,7 @@ export default class DiscordAwnAutoWhitelist extends DiscordBasePlugin {
 
   /**
    * Removes Admin from AWN Admin List and DB
-   * 
+   *
    * @param {String} discordID - discord user unique id
    * @param {String} awnListID  - the list to remove the user from
    * @param {String} awnAdminID  - the awn admin id to remove from the list
@@ -370,15 +369,14 @@ export default class DiscordAwnAutoWhitelist extends DiscordBasePlugin {
   }
 
   /**
-   * Overerite AWN Admin List entry for a Discord member, 
+   * Overerite AWN Admin List entry for a Discord member,
    * this is used when a Discord user has already been added to a AWN Admin List and attempts to add a diffrent Steam64ID
-   * 
+   *
    * @param {Object} lookup - Member Lookup row from DB
    * @param {ListEntry} entry - ListEntry object for the member to be altered
    */
-  async overwiteAdmin(lookup, entry) {
-
-    let resRemove = this.removeAdmin(entry.member.id, lookup.awnListID, lookup.awnAdminID);
+  async overwriteAdmin(lookup, entry) {
+    const resRemove = this.removeAdmin(entry.member.id, lookup.awnListID, lookup.awnAdminID);
     let resAdd;
 
     if (resRemove.success) {
@@ -389,7 +387,7 @@ export default class DiscordAwnAutoWhitelist extends DiscordBasePlugin {
       );
     }
 
-    if( resRemove.success && resAdd.success ){
+    if (resRemove.success && resAdd.success) {
       return true;
     } else {
       const requests = {
@@ -399,6 +397,5 @@ export default class DiscordAwnAutoWhitelist extends DiscordBasePlugin {
       this.verbose(2, `Overwrite ERROR: ${JSON.stringify(requests)}`);
       return false;
     }
-
   }
 }

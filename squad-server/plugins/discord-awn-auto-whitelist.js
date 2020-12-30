@@ -147,9 +147,6 @@ export default class DiscordAwnAutoWhitelist extends DiscordBasePlugin {
 
   async prepareToMount() {
     await this.wlLog.sync();
-  }
-
-  async afterMount() {
     this.seedLog = this.options.database.models.SeedLog_Players;
   }
 

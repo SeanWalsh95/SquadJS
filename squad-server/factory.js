@@ -89,14 +89,12 @@ export default class SquadServerFactory {
 
       const plugin = new Plugin(server, pluginConfig, connectors);
 
-      // allow the plugin to do any asynchronous work needed before it can be mounted
-      await plugin.prepareToMount();
-
       server.plugins.push(plugin);
     }
 
     for (const plugin of server.plugins) {
-      plugin.afterMount();
+      // allow the plugin to do any asynchronous work needed before it can be mounted
+      await plugin.prepareToMount();
     }
 
     return server;

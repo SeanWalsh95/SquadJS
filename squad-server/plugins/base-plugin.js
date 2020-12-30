@@ -31,6 +31,8 @@ export default class BasePlugin {
 
   async mount() {}
 
+  async afterMount() {}
+
   async unmount() {}
 
   static get description() {

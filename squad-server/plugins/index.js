@@ -16,6 +16,7 @@ import DiscordTeamkill from './discord-teamkill.js';
 import IntervalledBroadcasts from './intervalled-broadcasts.js';
 import SeedingMode from './seeding-mode.js';
 import TeamRandomizer from './team-randomizer.js';
+import TrackSeedingPlayer from './track-seeding-player.js';
 
 const plugins = [
   AutoKickUnassigned,
@@ -35,7 +36,8 @@ const plugins = [
   DiscordTeamkill,
   IntervalledBroadcasts,
   SeedingMode,
-  TeamRandomizer
+  TeamRandomizer,
+  TrackSeedingPlayer
 ];
 
 const pluginsByName = {};

@@ -95,6 +95,10 @@ export default class SquadServerFactory {
       server.plugins.push(plugin);
     }
 
+    for (const plugin of server.plugins) {
+      plugin.afterMount();
+    }
+
     return server;
   }
 

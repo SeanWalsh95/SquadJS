@@ -130,7 +130,7 @@ export default class DiscordAwnAutoWhitelist extends DiscordBasePlugin {
     this.awn = this.options.awnAPI;
 
     this.wlLog = this.options.database.define(`AutoWL_Log`, schema, { timestamps: false });
-    this.seedLog = this.options.database.models.SeedLog_Players;
+    this.seedLog = null;
 
     this.seedRewardRatio = {
       points: /* sec */ 60 * /* min */ 60 * /* hour */ 3,
@@ -147,6 +147,10 @@ export default class DiscordAwnAutoWhitelist extends DiscordBasePlugin {
 
   async prepareToMount() {
     await this.wlLog.sync();
+  }
+
+  async afterMount() {
+    this.seedLog = this.options.database.models.SeedLog_Players;
   }
 
   async mount() {
@@ -176,13 +180,11 @@ export default class DiscordAwnAutoWhitelist extends DiscordBasePlugin {
       return;
     }
 
-    this.verbose(1, message.content);
-
     try {
       const reaction = await this.parseDiscordMessage(message);
       if (reaction) message.react(reaction);
     } catch (err) {
-      this.verbose(3, err);
+      this.verbose(3, `${err.message}\n ${err.stack}`);
       message.react('❌');
     }
   }
@@ -388,7 +390,8 @@ export default class DiscordAwnAutoWhitelist extends DiscordBasePlugin {
         awnListID: entry.listID,
         discordName: entry.member.user.tag,
         addedBy: entry.addedBy,
-        reason: entry.reason
+        reason: entry.reason,
+        expires: entry.expires
       });
       this.verbose(3, resSql);
       return Boolean(resSql);

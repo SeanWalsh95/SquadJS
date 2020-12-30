@@ -5,7 +5,10 @@ const { DataTypes } = Sequelize;
 
 export default class TrackSeedingPlayer extends BasePlugin {
   static get description() {
-    return 'Tracks players that are seeding and rewards them with "points" which are awarded on every interval defined in options';
+    return (
+      'Tracks players that are seeding and rewards them with "points" which can be used across other plugins for rewards\n' +
+      '"points" represent the number of seconds a player has seeded for'
+    );
   }
 
   static get defaultEnabled() {
@@ -70,15 +73,19 @@ export default class TrackSeedingPlayer extends BasePlugin {
     if (
       this.server.a2sPlayerCount !== 0 &&
       this.server.a2sPlayerCount < this.options.seedingThreshold
-    ) {
+    )
       for (const player of this.server.players) {
         const match = await this.SeedLog.findOne({ where: { steamID: player.steamID } });
         if (match) {
+          const intervalTimeSec = parseInt(this.options.interval / 1000);
           await this.SeedLog.increment('totalSeedTime', {
-            by: parseInt(this.options.interval / 1000),
+            by: intervalTimeSec,
             where: { steamID: player.steamID }
           });
-          await this.SeedLog.increment('points', { where: { steamID: player.steamID } });
+          await this.SeedLog.increment('points', {
+            by: intervalTimeSec,
+            where: { steamID: player.steamID }
+          });
         } else {
           await this.SeedLog.upsert({
             steamID: player.steamID,
@@ -87,18 +94,5 @@ export default class TrackSeedingPlayer extends BasePlugin {
           });
         }
       }
-    }
-  }
-
-  async getPlayerPoints(player) {
-    const playerRow = await this.SeedLog.findOne({ where: { steamID: player.steamID } });
-    return playerRow.points || null;
-  }
-
-  async updatePlayerPoints(player, updatedPoints) {
-    return await this.SeedLog.upsert({
-      steamID: player.steamID,
-      points: updatedPoints
-    });
   }
 }

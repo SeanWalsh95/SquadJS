@@ -130,11 +130,11 @@ export default class DiscordAwnAutoWhitelist extends DiscordBasePlugin {
     this.awn = this.options.awnAPI;
 
     this.wlLog = this.options.database.define(`AutoWL_Log`, schema, { timestamps: false });
-    this.seedLog = this.options.database.models.SeedLog_Seeders;
+    this.seedLog = this.options.database.models.SeedLog_Players;
 
     this.seedRewardRatio = {
-      points: /* 3hrs */ 10800,
-      whitelistTime: 1000 /* sec */ * 60 /* min */ * 60 /* hour */ * 24 /* day */ * 7
+      points: /* sec */ 60 * /* min */ 60 * /* hour */ 3,
+      whitelistTime: /* ms */ 1000 /* sec */ * 60 /* min */ * 60 /* hour */ * 24 /* day */ * 7
     };
 
     this.onMessage = this.onMessage.bind(this);

@@ -462,6 +462,55 @@ Grafana (NOT YET WORKING WITH V2):
         </details>
 
 <details>
+          <summary>DiscordAwnAutoWhitelist</summary>
+          <h2>DiscordAwnAutoWhitelist</h2>
+          <p>Automatacally push matching DiscordID:SteamID pairs out to AWN Admin List where a users SteamID has a given role in Discord</p>
+          <h3>Options</h3>
+          <h4>discordClient (Required)</h4>
+           <h6>Description</h6>
+           <p>Discord connector name.</p>
+           <h6>Default</h6>
+           <pre><code>discord</code></pre>
+<h4>awnAPI (Required)</h4>
+           <h6>Description</h6>
+           <p>Discord connector name.</p>
+           <h6>Default</h6>
+           <pre><code>awnAPI</code></pre>
+<h4>database (Required)</h4>
+           <h6>Description</h6>
+           <p>The Sequelize connector to log server information to.</p>
+           <h6>Default</h6>
+           <pre><code>mysql</code></pre>
+<h4>serverID (Required)</h4>
+           <h6>Description</h6>
+           <p>The discord serverID.</p>
+           <h6>Default</h6>
+           <pre><code></code></pre><h6>Example</h6>
+           <pre><code>667741905228136459</code></pre>
+<h4>channelID (Required)</h4>
+           <h6>Description</h6>
+           <p>The ID of the channel to control awn from.</p>
+           <h6>Default</h6>
+           <pre><code></code></pre><h6>Example</h6>
+           <pre><code>667741905228136459</code></pre>
+<h4>whitelistModerator</h4>
+           <h6>Description</h6>
+           <p>Discord Role ID of a moderator the manually inputs discordID and steamID pairs into the whitelist channel</p>
+           <h6>Default</h6>
+           <pre><code></code></pre><h6>Example</h6>
+           <pre><code>667741905228136459</code></pre>
+<h4>whitelistRoles (Required)</h4>
+           <h6>Description</h6>
+           <p>Discord Role ID and the AWN Admin List ID Pairs</p>
+           <h6>Default</h6>
+           <pre><code>{}</code></pre><h6>Example</h6>
+           <pre><code>{
+  "667741905228136459": "1234",
+  "667741905228136460": "1452"
+}</code></pre>
+        </details>
+
+<details>
           <summary>DiscordChat</summary>
           <h2>DiscordChat</h2>
           <p>The <code>DiscordChat</code> plugin will log in-game chat to a Discord channel.</p>

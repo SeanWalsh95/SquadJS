@@ -5,6 +5,7 @@ import DBLog from './db-log.js';
 import DiscordAdminBroadcast from './discord-admin-broadcast.js';
 import DiscordAdminCamLogs from './discord-admin-cam-logs.js';
 import DiscordAdminRequest from './discord-admin-request.js';
+import DiscordAwnAutoWhitelist from './discord-awn-auto-whitelist.js';
 import DiscordChat from './discord-chat.js';
 import DiscordDebug from './discord-debug.js';
 import DiscordRcon from './discord-rcon.js';
@@ -24,6 +25,7 @@ const plugins = [
   DiscordAdminBroadcast,
   DiscordAdminCamLogs,
   DiscordAdminRequest,
+  DiscordAwnAutoWhitelist,
   DiscordChat,
   DiscordDebug,
   DiscordRcon,

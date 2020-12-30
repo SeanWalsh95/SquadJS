@@ -4,6 +4,7 @@ import { fileURLToPath } from 'url';
 
 import Discord from 'discord.js';
 import sequelize from 'sequelize';
+import AwnAPI from './utils/awn-api.js';
 
 import Logger from 'core/logger';
 
@@ -131,6 +132,10 @@ export default class SquadServerFactory {
 
       await connector.authenticate();
       return connector;
+    }
+
+    if (type === 'awnAPI') {
+      return new AwnAPI(connectorConfig);
     }
 
     throw new Error(`${type.connector} is an unsupported connector type.`);

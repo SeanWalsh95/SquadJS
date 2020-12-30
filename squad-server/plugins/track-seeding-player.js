@@ -52,7 +52,7 @@ export default class TrackSeedingPlayer extends BasePlugin {
       }
     };
 
-    this.SeedLog = this.options.database.define(`SeedLog_Seeders`, schema, { timestamps: false });
+    this.SeedLog = this.options.database.define(`SeedLog_Players`, schema, { timestamps: false });
 
     this.logPlayers = this.logPlayers.bind(this);
   }

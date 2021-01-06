@@ -5,8 +5,8 @@ import DiscordBasePlugin from './discord-base-plugin.js';
 const { DataTypes } = Sequelize;
 
 const steamUrlRgx = /(?:https?:\/\/)?(?<urlPart>steamcommunity.com\/id\/.*?)(?=[\s\b]|$)/;
-const steamIdRgx = /(?<steamId>765\d{14})/;
-const moderatorMsgRgx = /(?:<@!?)?(?<discordId>\d+)>? (?<steamId>765\d{14})/;
+const steamIdRgx = /(?<steamID>765\d{14})/;
+const moderatorMsgRgx = /(?:<@!?)?(?<discordID>\d+)>? (?<steamID>765\d{14})/;
 
 /**
  *  Refactor this to have two seprate systems where one adds to the DB and the other syncs the DB with AWN
@@ -79,7 +79,7 @@ export default class DiscordAwnAutoWhitelist extends DiscordBasePlugin {
         default: {},
         example: { '667741905228136459': '1234', '667741905228136460': '1452' }
       },
-      seedingWhitelistId: {
+      seedingWhitelistID: {
         required: false,
         description: 'AWN Admin List ID to add players that have contributed to server seeding',
         default: '',
@@ -91,47 +91,16 @@ export default class DiscordAwnAutoWhitelist extends DiscordBasePlugin {
   constructor(server, options, connectors) {
     super(server, options, connectors);
 
-    const schema = {
-      discordID: {
-        type: DataTypes.STRING,
-        primaryKey: true
-      },
-      steamID: {
-        type: DataTypes.STRING,
-        allowNull: false,
-        unique: true
-      },
-      awnAdminID: {
-        type: DataTypes.STRING,
-        allowNull: false
-      },
-      awnListID: {
-        type: DataTypes.STRING,
-        allowNull: false
-      },
-      discordName: {
-        type: DataTypes.STRING,
-        allowNull: false
-      },
-      addedBy: {
-        type: DataTypes.STRING
-      },
-      reason: {
-        type: DataTypes.STRING
-      },
-      expires: {
-        type: DataTypes.DATE
-      }
-    };
-
     this.lists = {};
+
+    this.defineSqlModels();
 
     this.discord = this.options.discordClient;
     this.awn = this.options.awnAPI;
 
-    this.wlLog = this.options.database.define(`AutoWL_Log`, schema, { timestamps: false });
     this.seedLog = null;
 
+    // rato of seed points days of whitelist
     this.seedRewardRatio = {
       points: /* sec */ 60 * /* min */ 60 * /* hour */ 3,
       whitelistTime: /* ms */ 1000 /* sec */ * 60 /* min */ * 60 /* hour */ * 24 /* day */ * 7
@@ -145,9 +114,70 @@ export default class DiscordAwnAutoWhitelist extends DiscordBasePlugin {
     }, 1000 * 60 * 15);
   }
 
+  defineSqlModels() {
+    this.wlEntries = this.options.database.define(
+      `AutoWL_Entries`,
+      {
+        discordID: {
+          type: DataTypes.STRING,
+          primaryKey: true
+        },
+        awnAdminID: {
+          type: DataTypes.STRING,
+          allowNull: false
+        },
+        awnListID: {
+          type: DataTypes.STRING,
+          allowNull: false
+        },
+        addedBy: {
+          type: DataTypes.STRING
+        },
+        reason: {
+          type: DataTypes.STRING
+        },
+        expires: {
+          type: DataTypes.DATE
+        }
+      },
+      { timestamps: false }
+    );
+
+    this.discordUsers = this.options.database.define(
+      `AutoWL_DiscordUsers`,
+      {
+        discordID: {
+          type: DataTypes.STRING,
+          primaryKey: true
+        },
+        discordTag: {
+          type: DataTypes.STRING
+        },
+        steamID: {
+          type: DataTypes.STRING,
+          allowNull: false,
+          unique: true
+        }
+      },
+      { timestamps: false }
+    );
+
+    this.discordUsers.hasOne(this.wlEntries, {
+      foreignKey: { name: 'discordID' },
+      onDelete: 'CASCADE'
+    });
+  }
+
   async prepareToMount() {
-    await this.wlLog.sync();
+    await this.discordUsers.sync();
+    await this.wlEntries.sync();
+    this.steamUsers = this.options.database.models.DBLog_SteamUsers;
     this.seedLog = this.options.database.models.SeedLog_Players;
+
+    this.options.database.models.DBLog_SteamUsers.hasOne(this.discordUsers, {
+      foreignKey: { name: 'steamID' },
+      onDelete: 'CASCADE'
+    });
   }
 
   async mount() {
@@ -160,8 +190,15 @@ export default class DiscordAwnAutoWhitelist extends DiscordBasePlugin {
   }
 
   async onMessage(message) {
-    // check the author of the message is not a bot and that the channel is the api request channel
-    if (message.author.bot || message.channel.id !== this.options.channelID) return;
+    // dont respond to bots
+    if (message.author.bot) return;
+
+    // respond to message with users seeding data or add them to the db
+    if (message.content.toLowerCase() === '!seeding') {
+    }
+
+    // all functions below this are bound to the channel defined in the config
+    if (message.channel.id !== this.options.channelID) return;
 
     if (message.content.toLowerCase() === '!refresh') {
       message.react('🔄');
@@ -187,7 +224,7 @@ export default class DiscordAwnAutoWhitelist extends DiscordBasePlugin {
   }
 
   /**
-   * Parses given discord message for discord/steam Id's
+   * Parses given discord message for discord/steam ID's
    *
    * @param {Object} message  - A discord.js message object
    * @returns {String} Emoji - An emoji responce to the original message
@@ -202,7 +239,7 @@ export default class DiscordAwnAutoWhitelist extends DiscordBasePlugin {
     const entry = new ListEntry();
 
     if (steamURLMatch) entry.steamID = await this.getSteamIdFromURL(steamURLMatch.groups.urlPart);
-    else entry.steamID = steamIdMatch.groups.steamId;
+    else entry.steamID = steamIdMatch.groups.steamID;
 
     if (
       message.content.match(moderatorMsgRgx) &&
@@ -210,7 +247,7 @@ export default class DiscordAwnAutoWhitelist extends DiscordBasePlugin {
     ) {
       entry.addedBy = 'Moderator Post';
       if (message.mentions.members) entry.member = message.mentions.members.first();
-      else entry.member = message.guild.members.resolve(moderatorMsgRgx.groups.discordId);
+      else entry.member = message.guild.members.resolve(moderatorMsgRgx.groups.discordID);
     } else {
       entry.addedBy = 'User Message';
       entry.member = message.member;
@@ -225,14 +262,14 @@ export default class DiscordAwnAutoWhitelist extends DiscordBasePlugin {
       entry.listID = listID;
     } else if (seedInfo && seedInfo.points >= this.seedRewardRatio.points) {
       entry.reason = 'Seeding Time';
-      entry.listID = this.options.seedingWhitelistId;
+      entry.listID = this.options.seedingWhitelistID;
       entry.expires = new Date(Date.now() + this.seedRewardRatio.whitelistTime);
     } else return '👎';
 
     // Begin valadation of Entry into AdminList
 
     // Lookup discord user from DB of Admin List entrys
-    const lookup = await this.wlLog.findOne({
+    const lookup = await this.wlEntries.findOne({
       where: { discordID: entry.member.id }
     });
 
@@ -260,7 +297,7 @@ export default class DiscordAwnAutoWhitelist extends DiscordBasePlugin {
     }
 
     // not sure this is nessasary if we just sync db and awn periodically and only add/remove from db
-    // Check if Steam64Id already in AWN admin list
+    // Check if Steam64ID already in AWN admin list
     const awnList = await this.updateList(entry.listID);
     if (awnList.steam64IDs.includes(entry.steamID)) {
       this.verbose(
@@ -295,7 +332,7 @@ export default class DiscordAwnAutoWhitelist extends DiscordBasePlugin {
     const guild = await this.discord.guilds.fetch(this.options.serverID);
 
     const pruneMembers = [];
-    for (const row of await this.wlLog.findAll()) {
+    for (const row of await this.wlEntries.findAll()) {
       const member = await guild.members.resolve(row.discordID);
       const listID = this.getMemberListID(member);
       const seedInfo = (await this.seedLog.findOne({ where: { steamID: row.steamID } })) || null;
@@ -321,18 +358,18 @@ export default class DiscordAwnAutoWhitelist extends DiscordBasePlugin {
   async updateList(awnListID) {
     const res = await this.awn.getAdminList(awnListID);
     if (res.success) {
-      const s64Ids = res.data.admins
+      const s64IDs = res.data.admins
         .filter((a) => {
           return a.type === 'steam64';
         })
         .map((a) => {
           return a.value;
         });
-      const ret = Object.assign(res.data, { steam64IDs: s64Ids });
+      const ret = Object.assign(res.data, { steam64IDs: s64IDs });
       this.lists[res.data.id] = ret;
       return ret;
     } else {
-      this.verbose(1, `Failed to update listId:${awnListID}`);
+      this.verbose(1, `Failed to update listID:${awnListID}`);
       return false;
     }
   }
@@ -367,8 +404,24 @@ export default class DiscordAwnAutoWhitelist extends DiscordBasePlugin {
       method: 'get',
       url: `https://${communityURL}`
     });
+
+    /**
+     *  steamData object = {
+     *    "url":"<profile_url>",
+     *    "steamid":"<id>",
+     *    "personaname":"<current_displayname>",
+     *    "summary":"<summary_from_profile>"
+     *  }
+     */
     const steamData = JSON.parse(res.data.match(/(?<=g_rgProfileData\s*=\s*)\{.*\}/));
     this.verbose(2, `Scraped Steam64ID:${steamData.steamid} from ${steamData.url}`);
+
+    // non blocking upsert
+    this.steamUsers.upsert({
+      steamID: steamData.steamid,
+      lastName: steamData.personaname
+    });
+
     return steamData.steamid;
   }
 
@@ -380,18 +433,20 @@ export default class DiscordAwnAutoWhitelist extends DiscordBasePlugin {
   async addAdmin(entry) {
     const resAwn = await this.awn.addAdmin(entry.listID, entry.steamID);
     if (resAwn.success) {
-      const resSql = await this.wlLog.upsert({
+      await this.discordUsers.upsert({
         discordID: entry.member.id,
         steamID: entry.steamID,
+        discordTag: entry.member.user.tag
+      });
+      await this.wlEntries.upsert({
+        discordID: entry.member.id,
         awnAdminID: resAwn.data.id,
         awnListID: entry.listID,
-        discordName: entry.member.user.tag,
         addedBy: entry.addedBy,
         reason: entry.reason,
         expires: entry.expires
       });
-      this.verbose(3, resSql);
-      return Boolean(resSql);
+      return true;
     }
     return false;
   }
@@ -406,9 +461,8 @@ export default class DiscordAwnAutoWhitelist extends DiscordBasePlugin {
   async removeAdmin(discordID, awnListID, awnAdminID) {
     const res = await this.awn.removeAdmin(awnListID, awnAdminID);
     if (res.success) {
-      const resSql = this.wlLog.destroy({ where: { discordID: discordID } });
-      this.verbose(3, resSql);
-      return Boolean(resSql);
+      await this.wlEntries.destroy({ where: { discordID: discordID } });
+      return true;
     }
     return false;
   }

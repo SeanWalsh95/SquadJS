@@ -173,11 +173,6 @@ export default class DiscordAwnAutoWhitelist extends DiscordBasePlugin {
     await this.wlEntries.sync();
     this.steamUsers = this.options.database.models.DBLog_SteamUsers;
     this.seedLog = this.options.database.models.SeedLog_Players;
-
-    this.options.database.models.DBLog_SteamUsers.hasOne(this.discordUsers, {
-      foreignKey: { name: 'steamID' },
-      onDelete: 'CASCADE'
-    });
   }
 
   async mount() {
@@ -199,6 +194,15 @@ export default class DiscordAwnAutoWhitelist extends DiscordBasePlugin {
 
     // all functions below this are bound to the channel defined in the config
     if (message.channel.id !== this.options.channelID) return;
+
+    if (message.content.toLowerCase() === '!join') {
+      const entries = await this.discordUsers.findAll({
+        include: [{ model: this.wlEntries, required: true }]
+      });
+      for (const row of entries) {
+        console.log(JSON.stringify(row));
+      }
+    }
 
     if (message.content.toLowerCase() === '!refresh') {
       message.react('🔄');
@@ -331,21 +335,29 @@ export default class DiscordAwnAutoWhitelist extends DiscordBasePlugin {
     this.verbose(1, `Pruning Users...`);
     const guild = await this.discord.guilds.fetch(this.options.serverID);
 
-    const pruneMembers = [];
-    for (const row of await this.wlEntries.findAll()) {
-      const member = await guild.members.resolve(row.discordID);
-      const listID = this.getMemberListID(member);
-      const seedInfo = (await this.seedLog.findOne({ where: { steamID: row.steamID } })) || null;
+    const membersToPrune = [];
 
-      if (row.reason === 'Seeding Time' && seedInfo) {
-        if (seedInfo.expires - Date.now() < 0) pruneMembers.push(row);
-      } else if (listID == null) pruneMembers.push(row);
+    const userEntries = await this.discordUsers.findAll({
+      include: [{ model: this.wlEntries, required: true }]
+    });
+    for (const userEntry of userEntries) {
+      this.verbose(2, JSON.stringify(userEntry.discordID));
+      const member = await guild.members.resolve(userEntry.discordID);
+      this.verbose(2, JSON.stringify(member));
+      const listID = this.getMemberListID(member);
+      if (userEntry.AutoWL_Entry.reason === 'Seeding Time') {
+        if (userEntry.AutoWL_Entry.expires - Date.now() < 0) membersToPrune.push(userEntry);
+      } else if (listID == null) membersToPrune.push(userEntry);
     }
 
-    for (const member of pruneMembers) {
-      const res = await this.removeAdmin(member.discordID, member.awnListID, member.awnAdminID);
-      if (res) this.verbose(1, `Pruned user ${member.lastKnownName}(${member.steamID})`);
-      else this.verbose(1, `Failed to prune ${member.lastKnownName}(${member.steamID})`);
+    for (const member of membersToPrune) {
+      const res = await this.removeAdmin(
+        member.discordID,
+        member.AutoWL_Entry.awnListID,
+        member.AutoWL_Entry.awnAdminID
+      );
+      if (res) this.verbose(1, `Pruned user ${member.discordTag}(${member.steamID})`);
+      else this.verbose(1, `Failed to prune ${member.discordTag}(${member.steamID})`);
     }
   }
 

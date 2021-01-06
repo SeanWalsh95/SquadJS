@@ -39,7 +39,7 @@ export default class AwnAPI {
         headers: { 'X-AWN-ACCESS-TOKEN': this.xAuthToken }
       };
 
-      Logger.verbose('awnAPI', 3, `${axiosRequest.method.toUpperCase()}: ${axiosRequest.url}`);
+      Logger.verbose('awnAPI', 2, `${axiosRequest.method.toUpperCase()}: ${axiosRequest.url}`);
 
       const res = await axios(axiosRequest);
 
@@ -58,11 +58,16 @@ export default class AwnAPI {
   }
 
   async addAdmin(listID, steamID) {
-    const ret = await this.request(
-      'post',
-      `/v5/org/${this.orgID}/game-servers/admin-lists/${listID}/admins`,
-      { type: 'steam64', value: `${steamID}` }
-    );
+    const ret = await this.request('post', `game-servers/admin-lists/${listID}/admins`, {
+      type: 'steam64',
+      value: `${steamID}`
+    });
+    ret.success = ret.status === 200;
+    return ret;
+  }
+
+  async getAdmin(listID, adminID) {
+    const ret = await this.request('get', `game-servers/admin-lists/${listID}/admins/${adminID}`);
     ret.success = ret.status === 200;
     return ret;
   }

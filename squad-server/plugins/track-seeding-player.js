@@ -1,9 +1,9 @@
 import Sequelize from 'sequelize';
-import BasePlugin from './base-plugin.js';
+import DiscordBasePlugin from './discord-base-plugin.js';
 
 const { DataTypes } = Sequelize;
 
-export default class TrackSeedingPlayer extends BasePlugin {
+export default class TrackSeedingPlayer extends DiscordBasePlugin {
   static get description() {
     return (
       'Tracks players that are seeding and rewards them with "points" which can be used across other plugins for rewards\n' +
@@ -17,11 +17,18 @@ export default class TrackSeedingPlayer extends BasePlugin {
 
   static get optionsSpecification() {
     return {
-      discordClient: {
+      ...DiscordBasePlugin.optionsSpecification,
+      serverID: {
         required: true,
-        description: 'Discord connector name.',
-        connector: 'discord',
-        default: 'discord'
+        description: 'The discord serverID.',
+        default: '',
+        example: '667741905228136459'
+      },
+      channelID: {
+        required: true,
+        description: 'The ID of the channel to control awn from.',
+        default: '',
+        example: '667741905228136459'
       },
       interval: {
         required: false,
@@ -51,6 +58,8 @@ export default class TrackSeedingPlayer extends BasePlugin {
   constructor(server, options, connectors) {
     super(server, options, connectors);
 
+    this.db = this.options.database;
+
     // rato of seed points days of whitelist
     this.pointRewardRatio = {
       points: /* sec */ 60 * /* min */ 60 * /* hour */ 3,
@@ -60,11 +69,13 @@ export default class TrackSeedingPlayer extends BasePlugin {
     this.defineSqlModels();
 
     this.logPlayers = this.logPlayers.bind(this);
+    this.clearExpiredRewards = this.clearExpiredRewards.bind(this);
+
     this.onMessage = this.onMessage.bind(this);
   }
 
   defineSqlModels() {
-    this.SeedLog = this.options.database.define(
+    this.seedLog = this.options.database.define(
       `SeedLog_Players`,
       {
         steamID: {
@@ -97,42 +108,52 @@ export default class TrackSeedingPlayer extends BasePlugin {
   }
 
   async prepareToMount() {
-    await this.SeedLog.sync();
-    await this.redemptions.sync();
+    this.guild = await this.options.discordClient.guilds.fetch(this.options.serverID);
 
-    this.discordUsers = this.database.models.AutoWL_DiscordUsers;
+    await this.seedLog.sync();
+    await this.redemptions.sync();
   }
 
   async mount() {
     this.options.discordClient.on('message', this.onMessage);
-    this.interval = setInterval(this.logPlayers, this.options.interval);
+    this.logPlayersInterval = setInterval(this.logPlayers, this.options.interval);
+    this.clearExpiredRewardsInterval = setInterval(
+      this.clearExpiredRewards,
+      1000 * 15 /* 1000 * 60 * 15 */
+    );
   }
 
   async unmount() {
     this.options.discordClient.removeEventListener('message', this.onMessage);
-    clearInterval(this.interval);
+    clearInterval(this.logPlayersInterval);
+    clearInterval(this.clearExpiredRewardsInterval);
   }
 
   async onMessage(message) {
-    const bypass = true;
-    if (message.author.bot || bypass) return;
+    if (message.author.bot || message.channel.id !== this.options.channelID) return;
 
-    const steamID = this.discordUsers.findOne({ where: { discordID: message.author.id } });
+    const rawQuerRes = await this.db.query(
+      `SELECT * FROM AutoWL_DiscordUsers u 
+      LEFT JOIN (
+        SELECT * from SeedLog_Players 
+      ) s ON s.steamID = u.steamID WHERE u.discordID = ${message.author.id}`,
+      { type: Sequelize.QueryTypes.SELECT }
+    );
+    const userRow = rawQuerRes[0];
 
-    // check if message.author.id exists in DB with steamID if not request steamID
-    if (!steamID) {
+    if (!userRow.steamID) {
       message.reply('Please post your Steam64Id so I can lookup your account activity');
       return;
     }
 
     if (message.content.toLowerCase().includes('!redeem')) {
-      const seedTime = false;
-      if (seedTime) {
-        const seedingRewardRole = message.guild.roles.resolve(this.options.discordRewardRoleID);
-        message.member.addRole(seedingRewardRole);
+      if (userRow.points >= this.pointRewardRatio.points) {
+        await message.member.roles.add(
+          await message.guild.roles.resolve(this.options.discordRewardRoleID)
+        );
         this.seedLog.decrement('points', {
-          by: this.seedRewardRatio.points,
-          where: { steamID: steamID }
+          by: this.pointRewardRatio.points,
+          where: { steamID: userRow.steamID }
         });
         this.redemptions.upsert({
           discordID: message.author.id,
@@ -142,8 +163,17 @@ export default class TrackSeedingPlayer extends BasePlugin {
     }
 
     if (message.content.toLowerCase().includes('!seeding')) {
-      // reply with seeind time from db
-      // message.reply();
+      if (userRow.points >= this.pointRewardRatio.points) {
+        message.reply(
+          `you have seeded on our server for ${this.formatSeconds(
+            userRow.totalSeedTime
+          )}\n**you are eligible for whitelist from seeding** use !redeem to get a week of whitelist`
+        );
+      } else {
+        message.reply(
+          `you have seeded on our server for ${this.formatSeconds(userRow.totalSeedTime)}`
+        );
+      }
     }
   }
 
@@ -153,24 +183,49 @@ export default class TrackSeedingPlayer extends BasePlugin {
       this.server.a2sPlayerCount < this.options.seedingThreshold
     )
       for (const player of this.server.players) {
-        const match = await this.SeedLog.findOne({ where: { steamID: player.steamID } });
+        const match = await this.seedLog.findOne({ where: { steamID: player.steamID } });
         if (match) {
           const intervalTimeSec = parseInt(this.options.interval / 1000);
-          await this.SeedLog.increment('totalSeedTime', {
+          await this.seedLog.increment('totalSeedTime', {
             by: intervalTimeSec,
             where: { steamID: player.steamID }
           });
-          await this.SeedLog.increment('points', {
+          await this.seedLog.increment('points', {
             by: intervalTimeSec,
             where: { steamID: player.steamID }
           });
         } else {
-          await this.SeedLog.upsert({
+          await this.seedLog.upsert({
             steamID: player.steamID,
             totalSeedTime: 0,
             points: 0
           });
         }
       }
+  }
+
+  async clearExpiredRewards() {
+    this.verbose(1, `Clearing Expired Rewards...`);
+    const expired = await this.redemptions.findAll({
+      where: { expires: { [Sequelize.Op.lte]: Date.now() } }
+    });
+    for (const e of expired) {
+      const member = await this.guild.members.fetch(e.discordID);
+      member.roles.remove(await this.guild.roles.resolve(this.options.discordRewardRoleID));
+      this.verbose(3, `removed role from ${member.tag}`);
+      this.redemptions.destroy({ where: { discordID: e.discordID } });
+    }
+    this.verbose(1, `${expired.length} rewards removed...`);
+  }
+
+  formatSeconds(timeInSeconds) {
+    // take in generic # of ms and return formatted MM:SS
+    const hr = Math.floor((timeInSeconds / 3600) % 24);
+    let min = Math.floor((timeInSeconds / 60) % 60);
+    // let sec = Math.floor(timeInSeconds % 60);
+
+    min = `${min}`.padStart(2, '0');
+    // sec = (`${sec}`).padStart(2, '0');
+    return `${hr} hours and ${min} minutes`;
   }
 }

@@ -163,8 +163,7 @@ export default class DiscordAwnAutoWhitelist extends DiscordBasePlugin {
     );
 
     this.discordUsers.hasOne(this.wlEntries, {
-      foreignKey: { name: 'discordID' },
-      onDelete: 'CASCADE'
+      foreignKey: { name: 'discordID' }
     });
   }
 

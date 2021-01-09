@@ -78,12 +78,6 @@ export default class DiscordAwnAutoWhitelist extends DiscordBasePlugin {
         description: 'Discord Role ID and the AWN Admin List ID Pairs',
         default: {},
         example: { '667741905228136459': '1234', '667741905228136460': '1452' }
-      },
-      seedingWhitelistID: {
-        required: false,
-        description: 'AWN Admin List ID to add players that have contributed to server seeding',
-        default: '',
-        example: '1234'
       }
     };
   }
@@ -97,14 +91,6 @@ export default class DiscordAwnAutoWhitelist extends DiscordBasePlugin {
 
     this.discord = this.options.discordClient;
     this.awn = this.options.awnAPI;
-
-    this.seedLog = null;
-
-    // rato of seed points days of whitelist
-    this.seedRewardRatio = {
-      points: /* sec */ 60 * /* min */ 60 * /* hour */ 3,
-      whitelistTime: /* ms */ 1000 /* sec */ * 60 /* min */ * 60 /* hour */ * 24 /* day */ * 7
-    };
 
     this.onMessage = this.onMessage.bind(this);
 
@@ -135,9 +121,6 @@ export default class DiscordAwnAutoWhitelist extends DiscordBasePlugin {
         },
         reason: {
           type: DataTypes.STRING
-        },
-        expires: {
-          type: DataTypes.DATE
         }
       },
       { timestamps: false }
@@ -171,7 +154,6 @@ export default class DiscordAwnAutoWhitelist extends DiscordBasePlugin {
     await this.discordUsers.sync();
     await this.wlEntries.sync();
     this.steamUsers = this.options.database.models.DBLog_SteamUsers;
-    this.seedLog = this.options.database.models.SeedLog_Players;
   }
 
   async mount() {
@@ -186,10 +168,6 @@ export default class DiscordAwnAutoWhitelist extends DiscordBasePlugin {
   async onMessage(message) {
     // dont respond to bots
     if (message.author.bot) return;
-
-    // respond to message with users seeding data or add them to the db
-    if (message.content.toLowerCase() === '!seeding') {
-    }
 
     // all functions below this are bound to the channel defined in the config
     if (message.channel.id !== this.options.channelID) return;
@@ -256,17 +234,11 @@ export default class DiscordAwnAutoWhitelist extends DiscordBasePlugin {
       entry.member = message.member;
     }
 
-    const seedInfo = (await this.seedLog.findOne({ where: { steamID: entry.steamID } })) || null;
-
     // check if member has whitelist role
     const listID = this.getMemberListID(entry.member);
     if (listID) {
       entry.reason = 'Discord Role';
       entry.listID = listID;
-    } else if (seedInfo && seedInfo.points >= this.seedRewardRatio.points) {
-      entry.reason = 'Seeding Time';
-      entry.listID = this.options.seedingWhitelistID;
-      entry.expires = new Date(Date.now() + this.seedRewardRatio.whitelistTime);
     } else return '👎';
 
     // Begin valadation of Entry into AdminList
@@ -317,12 +289,6 @@ export default class DiscordAwnAutoWhitelist extends DiscordBasePlugin {
         1,
         `Added ${entry.steamID} to '${awnList.label}' from ${entry.addedBy} for ${entry.reason}`
       );
-      if (entry.reason === 'Seeding Time') {
-        await this.seedLog.decrement('points', {
-          by: this.seedRewardRatio.points,
-          where: { steamID: entry.steamID }
-        });
-      }
       return '👍';
     } else return '❌';
   }
@@ -344,9 +310,7 @@ export default class DiscordAwnAutoWhitelist extends DiscordBasePlugin {
       const member = await guild.members.resolve(userEntry.discordID);
       this.verbose(2, JSON.stringify(member));
       const listID = this.getMemberListID(member);
-      if (userEntry.AutoWL_Entry.reason === 'Seeding Time') {
-        if (userEntry.AutoWL_Entry.expires - Date.now() < 0) membersToPrune.push(userEntry);
-      } else if (listID == null) membersToPrune.push(userEntry);
+      if (listID == null) membersToPrune.push(userEntry);
     }
 
     for (const member of membersToPrune) {
@@ -454,8 +418,7 @@ export default class DiscordAwnAutoWhitelist extends DiscordBasePlugin {
         awnAdminID: resAwn.data.id,
         awnListID: entry.listID,
         addedBy: entry.addedBy,
-        reason: entry.reason,
-        expires: entry.expires
+        reason: entry.reason
       });
       return true;
     }

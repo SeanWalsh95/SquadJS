@@ -97,7 +97,8 @@ export default class DiscordAwnAutoWhitelist extends DiscordBasePlugin {
     // prune users every 15 minutes
     setInterval(async () => {
       await this.pruneUsers();
-    }, 1000 * 60 * 15);
+      await this.updateEntrysFromRoles();
+    }, 1000 * 60 * 1/*15*/);
   }
 
   defineSqlModels() {
@@ -151,6 +152,8 @@ export default class DiscordAwnAutoWhitelist extends DiscordBasePlugin {
   }
 
   async prepareToMount() {
+    this.guild = await this.options.discordClient.guilds.fetch(this.options.serverID);
+
     await this.discordUsers.sync();
     await this.wlEntries.sync();
     this.steamUsers = this.options.database.models.DBLog_SteamUsers;
@@ -234,6 +237,9 @@ export default class DiscordAwnAutoWhitelist extends DiscordBasePlugin {
       entry.member = message.member;
     }
 
+    //always record steamID
+    await this.storeSteamID(entry.member, entry.steamID);
+
     // check if member has whitelist role
     const listID = this.getMemberListID(entry.member);
     if (listID) {
@@ -298,7 +304,6 @@ export default class DiscordAwnAutoWhitelist extends DiscordBasePlugin {
    */
   async pruneUsers() {
     this.verbose(1, `Pruning Users...`);
-    const guild = await this.discord.guilds.fetch(this.options.serverID);
 
     const membersToPrune = [];
 
@@ -306,9 +311,7 @@ export default class DiscordAwnAutoWhitelist extends DiscordBasePlugin {
       include: [{ model: this.wlEntries, required: true }]
     });
     for (const userEntry of userEntries) {
-      this.verbose(2, JSON.stringify(userEntry.discordID));
-      const member = await guild.members.resolve(userEntry.discordID);
-      this.verbose(2, JSON.stringify(member));
+      const member = await this.guild.members.fetch(userEntry.discordID);
       const listID = this.getMemberListID(member);
       if (listID == null) membersToPrune.push(userEntry);
     }
@@ -399,6 +402,72 @@ export default class DiscordAwnAutoWhitelist extends DiscordBasePlugin {
 
     return steamData.steamid;
   }
+
+async dmForSteamID(){
+  this.verbose(1, `Reminding Users to register SteamID...`)
+  this.guild = await this.options.discordClient.guilds.fetch(this.options.serverID);
+
+  for(const roleID of Object.keys(this.options.whitelistRoles)){
+    const role = await this.guild.roles.fetch(roleID);
+    for(const [memberID, member] of role.members){
+      member.user.send(`You seem to have a pending reward but I need your steamID to give it to you, please send me your steam64ID`)
+    }
+  }
+
+
+}
+
+async updateEntrysFromRoles(){
+  this.verbose(1, `Updating role rewards...`)
+  this.guild = await this.options.discordClient.guilds.fetch(this.options.serverID);
+
+
+  for(const roleID of Object.keys(this.options.whitelistRoles)){
+    const role = await this.guild.roles.fetch(roleID)
+    this.verbose(2, `Searching "${role.name}"...`)
+    this.verbose(3, `${role.name}: ${JSON.stringify(role.members)}`)
+    for(const [memberID, member] of role.members){
+      this.verbose(3, `Looking at ${member.user.name}...`)
+      const userData = await this.discordUsers.findAll({
+        include: [{ model: this.wlEntries, required: true }],
+        where: {discordID: memberID}
+      });
+      console.log(`UserData: ${JSON.stringify(userData)}`)
+      if(!(userData)){
+        this.verbose(2, `${member.user.name} not registered for rewards from role ${role.name}`)
+        continue
+      }
+      if(userData.AutoWL_Entry){
+        this.verbose(3, `${member.user.name} already in list`)
+        continue;
+      }
+
+
+      const listID = await this.getMemberListID()
+      if(!(listID)) return;
+
+      const entry = new ListEntry();
+
+      this.addedBy = 'Role Interval';
+      this.member = member;
+      this.steamID = userData.steamID;
+      this.listID = listID;
+      this.reason = 'Discord Role';
+
+      this.addAdmin(entry)
+      this.verbose(2, `Added ${member.user.name} to whitelist`)
+    }
+  }
+}
+
+
+async storeSteamID(member, steamID){
+  await this.discordUsers.upsert({
+    discordID: member.id,
+    steamID: steamID,
+    discordTag: member.user.tag
+  });
+}
 
   /**
    * Add admin to AWN Admin List

@@ -99,6 +99,9 @@ export default class TrackSeedingPlayer extends DiscordBasePlugin {
           type: DataTypes.STRING,
           primaryKey: true
         },
+        roleID:{
+          type: DataTypes.STRING
+        },
         expires: {
           type: DataTypes.DATE
         }
@@ -110,6 +113,7 @@ export default class TrackSeedingPlayer extends DiscordBasePlugin {
   async prepareToMount() {
     this.guild = await this.options.discordClient.guilds.fetch(this.options.serverID);
 
+    this.users = this.db.models.AutoWL_DiscordUsers;
     await this.seedLog.sync();
     await this.redemptions.sync();
   }
@@ -119,7 +123,7 @@ export default class TrackSeedingPlayer extends DiscordBasePlugin {
     this.logPlayersInterval = setInterval(this.logPlayers, this.options.interval);
     this.clearExpiredRewardsInterval = setInterval(
       this.clearExpiredRewards,
-      1000 * 15 /* 1000 * 60 * 15 */
+      1000 * 60 * 15
     );
   }
 
@@ -142,11 +146,14 @@ export default class TrackSeedingPlayer extends DiscordBasePlugin {
     const userRow = rawQuerRes[0];
 
     if (!userRow.steamID) {
-      message.reply('Please post your Steam64Id so I can lookup your account activity');
+      message.reply('Please post your Steam64Id so I can lookup your account activity and assign you rewards');
       return;
     }
 
     if (message.content.toLowerCase().includes('!redeem')) {
+      const existing = this.redemptions.findOne({where: {discordID:message.author.id}})
+      if(existing) return;
+
       if (userRow.points >= this.pointRewardRatio.points) {
         await message.member.roles.add(
           await message.guild.roles.resolve(this.options.discordRewardRoleID)
@@ -157,6 +164,7 @@ export default class TrackSeedingPlayer extends DiscordBasePlugin {
         });
         this.redemptions.upsert({
           discordID: message.author.id,
+          roleID: this.options.discordRewardRoleID,
           expires: new Date(Date.now() + this.pointRewardRatio.whitelistTime)
         });
       }
@@ -211,7 +219,7 @@ export default class TrackSeedingPlayer extends DiscordBasePlugin {
     });
     for (const e of expired) {
       const member = await this.guild.members.fetch(e.discordID);
-      member.roles.remove(await this.guild.roles.resolve(this.options.discordRewardRoleID));
+      member.roles.remove(await this.guild.roles.resolve(e.roleID));
       this.verbose(3, `removed role from ${member.tag}`);
       this.redemptions.destroy({ where: { discordID: e.discordID } });
     }

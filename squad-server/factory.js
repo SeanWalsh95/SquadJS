@@ -137,7 +137,9 @@ export default class SquadServerFactory {
     }
 
     if (type === 'awnAPI') {
-      return new AwnAPI(connectorConfig);
+      const awn = new AwnAPI(connectorConfig);
+      await awn.auth(connectorConfig);
+      return awn;
     }
 
     throw new Error(`${type.connector} is an unsupported connector type.`);

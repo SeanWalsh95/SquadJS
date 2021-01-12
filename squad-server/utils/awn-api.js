@@ -5,8 +5,6 @@ export default class AwnAPI {
   constructor(options) {
     this.orgID = options.orgID;
     this.xAuthToken = null;
-
-    this.auth(options);
   }
 
   async auth(options) {

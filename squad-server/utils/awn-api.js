@@ -39,7 +39,8 @@ export default class AwnAPI {
         headers: { 'X-AWN-ACCESS-TOKEN': this.xAuthToken }
       };
 
-      Logger.verbose('awnAPI', 2, `${axiosRequest.method.toUpperCase()}: ${axiosRequest.url}`);
+      Logger.verbose('awnAPI', 1, `${axiosRequest.method.toUpperCase()}: ${axiosRequest.url}`);
+      Logger.verbose('awnAPI', 3, `Data: ${JSON.stringify(data)}`);
 
       const res = await axios(axiosRequest);
 

@@ -163,8 +163,8 @@ export default class DiscordAwnAutoWhitelist extends DiscordBasePlugin {
     this.options.discordClient.on('message', this.onMessage);
 
     this.usersUpdateInterval = setInterval(async () => {
-      await this.updateEntrysFromRoles();
       await this.pruneUsers();
+      await this.updateEntrysFromRoles();
     }, 1000 * 60 * 1 /* 15 */);
     this.requestMissingSteamIDsInterval = setInterval(
       this.requestMissingSteamIDs,
@@ -406,13 +406,20 @@ export default class DiscordAwnAutoWhitelist extends DiscordBasePlugin {
 
     const membersToPrune = [];
 
-    const userEntries = await this.discordUsers.findAll({
+    const userRows = await this.discordUsers.findAll({
       include: [{ model: this.wlEntries, required: true }]
     });
-    for (const userEntry of userEntries) {
-      const member = await this.guild.members.fetch(userEntry.discordID);
+    for (const userRow of userRows) {
+      const member = await this.guild.members.fetch(userRow.discordID);
       const listID = this.getMemberListID(member);
-      if (listID == null) membersToPrune.push(userEntry);
+      if (listID === null) {
+        membersToPrune.push(userRow);
+        continue;
+      }
+      if (listID !== userRow.AutoWL_Entry.awnListID) {
+        membersToPrune.push(userRow);
+        continue;
+      }
     }
 
     for (const member of membersToPrune) {

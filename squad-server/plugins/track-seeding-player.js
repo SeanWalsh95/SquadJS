@@ -150,13 +150,15 @@ export default class TrackSeedingPlayer extends DiscordBasePlugin {
     }
 
     if (message.content.toLowerCase().includes('!redeem')) {
-      const existing = this.redemptions.findOne({ where: { discordID: message.author.id } });
-      if (existing) return;
-
+      const existing = await this.redemptions.findOne({ where: { discordID: message.author.id } });
+      if (existing) {
+        message.reply('you already have an active reward');
+        return;
+      }
       if (userRow.points >= this.pointRewardRatio.points) {
-        await message.member.roles.add(
-          await message.guild.roles.resolve(this.options.discordRewardRoleID)
-        );
+        this.verbose(1, `POINTS`);
+        const rewardRole = await message.guild.roles.resolve(this.options.discordRewardRoleID);
+        await message.member.roles.add(rewardRole);
         this.seedLog.decrement('points', {
           by: this.pointRewardRatio.points,
           where: { steamID: userRow.steamID }
@@ -166,6 +168,13 @@ export default class TrackSeedingPlayer extends DiscordBasePlugin {
           roleID: this.options.discordRewardRoleID,
           expires: new Date(Date.now() + this.pointRewardRatio.whitelistTime)
         });
+        this.verbose(
+          1,
+          `${message.author.tag} redeemed ${rewardRole.name} for ${this.pointRewardRatio.points}`
+        );
+        message.reply(`congratulations, your week of whitlisting starts now`);
+      } else {
+        message.reply(`You dont have enough seeding time to redeem a reward`);
       }
     }
 

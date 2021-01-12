@@ -502,12 +502,6 @@ Grafana (NOT YET WORKING WITH V2):
            <h6>Default</h6>
            <pre><code></code></pre></li><h6>Example</h6>
            <pre><code>667741905228136459</code></pre>
-<li><h4>whitelistModerator</h4>
-           <h6>Description</h6>
-           <p>Discord Role ID of a moderator the manually inputs discordID and steamID pairs into the whitelist channel</p>
-           <h6>Default</h6>
-           <pre><code></code></pre></li><h6>Example</h6>
-           <pre><code>667741905228136459</code></pre>
 <li><h4>whitelistRoles (Required)</h4>
            <h6>Description</h6>
            <p>Discord Role ID and the AWN Admin List ID Pairs</p>

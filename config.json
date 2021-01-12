@@ -138,7 +138,6 @@
       "database": "mysql",
       "serverID": "",
       "channelID": "",
-      "whitelistModerator": "",
       "whitelistRoles": {}
     },
     {

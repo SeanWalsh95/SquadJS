@@ -184,12 +184,17 @@ export default class DiscordAwnAutoWhitelist extends DiscordBasePlugin {
 
     // grab/update steamID from DM's
     if (message.channel.type === 'dm') {
-      this.verbose(4, `Rceived DM from ${message.author.tag}`);
+      this.verbose(3, `Rceived DM from ${message.author.tag}`);
       const steamIdMatch = message.content.match(steamIdRgx);
       if (steamIdMatch) {
-        await this.storeSteamID(message.author, steamIdMatch.groups.steamID);
-        message.react('👍');
-        delete this.missingSteamIDs[message.author.id];
+        try {
+          await this.storeSteamID(message.author, steamIdMatch.groups.steamID);
+          message.react('👍');
+          delete this.missingSteamIDs[message.author.id];
+        } catch (err) {
+          this.verbose(3, `${err.message}\n ${err.stack}`);
+          message.react('❌');
+        }
       } else return;
     }
 

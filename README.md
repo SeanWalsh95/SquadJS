@@ -516,13 +516,7 @@ Grafana (NOT YET WORKING WITH V2):
            <pre><code>{
   "667741905228136459": "1234",
   "667741905228136460": "1452"
-}</code></pre>
-<li><h4>seedingWhitelistId</h4>
-           <h6>Description</h6>
-           <p>AWN Admin List ID to add players that have contributed to server seeding</p>
-           <h6>Default</h6>
-           <pre><code></code></pre></li><h6>Example</h6>
-           <pre><code>1234</code></pre></ul>
+}</code></pre></ul>
         </details>
 
 <details>
@@ -824,7 +818,24 @@ Grafana (NOT YET WORKING WITH V2):
           <p>Tracks players that are seeding and rewards them with "points" which can be used across other plugins for rewards
 "points" represent the number of seconds a player has seeded for</p>
           <h3>Options</h3>
-          <ul><li><h4>interval</h4>
+          <ul><li><h4>discordClient (Required)</h4>
+           <h6>Description</h6>
+           <p>Discord connector name.</p>
+           <h6>Default</h6>
+           <pre><code>discord</code></pre></li>
+<li><h4>serverID (Required)</h4>
+           <h6>Description</h6>
+           <p>The discord serverID.</p>
+           <h6>Default</h6>
+           <pre><code></code></pre></li><h6>Example</h6>
+           <pre><code>667741905228136459</code></pre>
+<li><h4>channelID (Required)</h4>
+           <h6>Description</h6>
+           <p>The ID of the channel to control awn from.</p>
+           <h6>Default</h6>
+           <pre><code></code></pre></li><h6>Example</h6>
+           <pre><code>667741905228136459</code></pre>
+<li><h4>interval</h4>
            <h6>Description</h6>
            <p>Frequency of checking for players.</p>
            <h6>Default</h6>
@@ -838,7 +849,13 @@ Grafana (NOT YET WORKING WITH V2):
            <h6>Description</h6>
            <p>Player count required for server not to be in seeding mode.</p>
            <h6>Default</h6>
-           <pre><code>50</code></pre></li></ul>
+           <pre><code>50</code></pre></li>
+<li><h4>discordRewardRoleID</h4>
+           <h6>Description</h6>
+           <p>A Discord role to give to a user for points</p>
+           <h6>Default</h6>
+           <pre><code></code></pre></li><h6>Example</h6>
+           <pre><code>667741905228136459</code></pre></ul>
         </details>
 
 <br>

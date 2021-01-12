@@ -99,7 +99,7 @@ export default class TrackSeedingPlayer extends DiscordBasePlugin {
           type: DataTypes.STRING,
           primaryKey: true
         },
-        roleID:{
+        roleID: {
           type: DataTypes.STRING
         },
         expires: {
@@ -121,10 +121,7 @@ export default class TrackSeedingPlayer extends DiscordBasePlugin {
   async mount() {
     this.options.discordClient.on('message', this.onMessage);
     this.logPlayersInterval = setInterval(this.logPlayers, this.options.interval);
-    this.clearExpiredRewardsInterval = setInterval(
-      this.clearExpiredRewards,
-      1000 * 60 * 15
-    );
+    this.clearExpiredRewardsInterval = setInterval(this.clearExpiredRewards, 1000 * 60 * 15);
   }
 
   async unmount() {
@@ -146,13 +143,15 @@ export default class TrackSeedingPlayer extends DiscordBasePlugin {
     const userRow = rawQuerRes[0];
 
     if (!userRow.steamID) {
-      message.reply('Please post your Steam64Id so I can lookup your account activity and assign you rewards');
+      message.reply(
+        'Please post your Steam64Id so I can lookup your account activity and assign you rewards'
+      );
       return;
     }
 
     if (message.content.toLowerCase().includes('!redeem')) {
-      const existing = this.redemptions.findOne({where: {discordID:message.author.id}})
-      if(existing) return;
+      const existing = this.redemptions.findOne({ where: { discordID: message.author.id } });
+      if (existing) return;
 
       if (userRow.points >= this.pointRewardRatio.points) {
         await message.member.roles.add(

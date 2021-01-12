@@ -139,8 +139,7 @@
       "serverID": "",
       "channelID": "",
       "whitelistModerator": "",
-      "whitelistRoles": {},
-      "seedingWhitelistId": ""
+      "whitelistRoles": {}
     },
     {
       "plugin": "DiscordChat",
@@ -228,9 +227,13 @@
     {
       "plugin": "TrackSeedingPlayer",
       "enabled": false,
+      "discordClient": "discord",
+      "serverID": "",
+      "channelID": "",
       "interval": 150000,
       "database": "mysql",
-      "seedingThreshold": 50
+      "seedingThreshold": 50,
+      "discordRewardRoleID": ""
     }
   ],
   "logger": {

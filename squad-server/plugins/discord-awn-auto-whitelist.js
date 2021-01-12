@@ -160,16 +160,13 @@ export default class DiscordAwnAutoWhitelist extends DiscordBasePlugin {
   async mount() {
     this.options.discordClient.on('message', this.onMessage);
 
-    this.usersUpdateInterval = setInterval(
-      async () => {
-        await this.updateEntrysFromRoles();
-        await this.pruneUsers();
-      },
-      1000 * 60 * 1 /*15*/
-    );
+    this.usersUpdateInterval = setInterval(async () => {
+      await this.updateEntrysFromRoles();
+      await this.pruneUsers();
+    }, 1000 * 60 * 1 /* 15 */);
     this.requestMissingSteamIDsInterval = setInterval(
       this.requestMissingSteamIDs,
-      1000 * 60 * 0.5 /*15*/
+      1000 * 60 * 0.5 /* 15 */
     );
 
     await this.loadLists();
@@ -185,16 +182,13 @@ export default class DiscordAwnAutoWhitelist extends DiscordBasePlugin {
     // dont respond to bots
     if (message.author.bot) return;
 
-    if (message.channel.type === 'dm'){
+    if (message.channel.type === 'dm') {
       const steamIdMatch = message.content.match(steamIdRgx);
-      if(steamIdMatch){
-        await this.storeSteamID(
-          message.author,
-          steamIdMatch.groups.steamID
-        )
-        delete this.missingSteamIDs[message.author.id]
-        message.react('👍')
-      }else return;
+      if (steamIdMatch) {
+        await this.storeSteamID(message.author, steamIdMatch.groups.steamID);
+        delete this.missingSteamIDs[message.author.id];
+        message.react('👍');
+      } else return;
     }
 
     // all functions below this are bound to the channel defined in the config
@@ -262,7 +256,7 @@ export default class DiscordAwnAutoWhitelist extends DiscordBasePlugin {
       entry.member = message.member;
     }
 
-    //always record steamID
+    // always record steamID
     await this.storeSteamID(entry.member, entry.steamID);
 
     // check if member has whitelist role
@@ -428,63 +422,66 @@ export default class DiscordAwnAutoWhitelist extends DiscordBasePlugin {
     return steamData.steamid;
   }
 
-  async updateEntrysFromRoles(){
-    this.verbose(1, `Updating role rewards...`)
+  async updateEntrysFromRoles() {
+    this.verbose(1, `Updating role rewards...`);
     this.guild = await this.options.discordClient.guilds.fetch(this.options.serverID);
 
-    for(const roleID of Object.keys(this.options.whitelistRoles)){
-      const role = await this.guild.roles.fetch(roleID)
-      if(!role) continue;
-      this.verbose(2, `Searching "${role.name}"...`)
-      for(const [memberID, member] of await this.guild.members.fetch()) {
-        if(!(member._roles.includes(role.id))) continue;
+    for (const roleID of Object.keys(this.options.whitelistRoles)) {
+      const role = await this.guild.roles.fetch(roleID);
+      if (!role) continue;
+      this.verbose(2, `Searching "${role.name}"...`);
+      for (const [memberID, member] of await this.guild.members.fetch()) {
+        if (!member._roles.includes(role.id)) continue;
 
         const userData = await this.discordUsers.findOne({
           include: [{ model: this.wlEntries, required: false }],
-          where: {discordID: memberID}
+          where: { discordID: memberID }
         });
-        if(!(userData)){
-          this.verbose(2, `${member.displayName} not registered for rewards from role ${role.name}`)
+        if (!userData) {
+          this.verbose(
+            2,
+            `${member.displayName} not registered for rewards from role ${role.name}`
+          );
           this.missingSteamIDs[member.id] = null;
           continue;
         }
-        if(userData.AutoWL_Entry){
-          this.verbose(3, `${member.displayName} already in list`)
+        if (userData.AutoWL_Entry) {
+          this.verbose(3, `${member.displayName} already in list`);
           continue;
         }
 
-        const listID = await this.getMemberListID(member)
-        if(!(listID)) continue;
+        const listID = await this.getMemberListID(member);
+        if (!listID) continue;
 
         const entry = new ListEntry();
         entry.addedBy = 'Role Interval';
-        entry.member =   member;
-        entry.steamID =  userData.steamID;
-        entry.listID =   listID;
-        entry.reason =  'Discord Role';
-        let res = await this.addAdmin(entry);
+        entry.member = member;
+        entry.steamID = userData.steamID;
+        entry.listID = listID;
+        entry.reason = 'Discord Role';
+        const res = await this.addAdmin(entry);
 
-        if(res.success)
-          this.verbose(2, `Added ${member.displayName} to whitelist`)
-        else
-          this.verbose(1, `ERROR Adding ${JSON.stringify(entry)}`)
+        if (res.success) this.verbose(2, `Added ${member.displayName} to whitelist`);
+        else this.verbose(1, `ERROR Adding ${JSON.stringify(entry)}`);
       }
     }
   }
 
-  async requestMissingSteamIDs(){
-    for(const discordID of Object.keys(this.missingSteamIDs)){
+  async requestMissingSteamIDs() {
+    for (const discordID of Object.keys(this.missingSteamIDs)) {
       const member = await this.guild.members.fetch(discordID);
-      if(!(member)) continue;
-      this.verbose(2, `Requesting SteamID from ${member.displayName}...`)
-      member.send(`You seem to have a pending reward but I need your steamID to give it to you, please send me your steam64ID`)
+      if (!member) continue;
+      this.verbose(2, `Requesting SteamID from ${member.displayName}...`);
+      member.send(
+        `You seem to have a pending reward but I need your steamID to give it to you, please send me your steam64ID`
+      );
     }
   }
 
-  async storeSteamID(discordUser, steamID){
+  async storeSteamID(discordUser, steamID) {
     await this.discordUsers.upsert({
-      discordID:  discordUser.id,
-      steamID:    steamID,
+      discordID: discordUser.id,
+      steamID: steamID,
       discordTag: discordUser.tag
     });
   }
@@ -498,16 +495,16 @@ export default class DiscordAwnAutoWhitelist extends DiscordBasePlugin {
     const resAwn = await this.awn.addAdmin(entry.listID, entry.steamID);
     if (resAwn.success) {
       await this.discordUsers.upsert({
-        discordID:  entry.member.id,
-        steamID:    entry.steamID,
+        discordID: entry.member.id,
+        steamID: entry.steamID,
         discordTag: entry.member.user.tag
       });
       await this.wlEntries.upsert({
-        discordID:  entry.member.id,
+        discordID: entry.member.id,
         awnAdminID: resAwn.data.id,
-        awnListID:  entry.listID,
-        addedBy:    entry.addedBy,
-        reason:     entry.reason
+        awnListID: entry.listID,
+        addedBy: entry.addedBy,
+        reason: entry.reason
       });
       return true;
     }

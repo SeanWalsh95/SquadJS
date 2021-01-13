@@ -7,7 +7,8 @@ export default class TrackSeedingPlayer extends DiscordBasePlugin {
   static get description() {
     return (
       'Tracks players that are seeding and rewards them with "points" which can be used across other plugins for rewards\n' +
-      '"points" represent the number of seconds a player has seeded for'
+      '"points" represent the number of seconds a player has seeded for \n' +
+      'This plugin requires DiscordAwnAutoWhitelist to assign rewards properly'
     );
   }
 
@@ -41,16 +42,26 @@ export default class TrackSeedingPlayer extends DiscordBasePlugin {
         description: 'The Sequelize connector to log server information to.',
         default: 'mysql'
       },
-      seedingThreshold: {
+      minSeedingThreshold: {
         required: false,
-        description: 'Player count required for server not to be in seeding mode.',
-        default: 50
+        description: 'the minimum number of players in order to count as "seeding".',
+        default: 3
+      },
+      maxSeedingThreshold: {
+        required: false,
+        description: 'the miximum number of players in order to count as "seeding".',
+        default: 40
       },
       discordRewardRoleID: {
         required: false,
         description: 'A Discord role to give to a user for points',
         default: '',
         example: '667741905228136459'
+      },
+      noRewards: {
+        required: false,
+        description: 'Determines whether or not rewards are enabled',
+        default: false
       }
     };
   }
@@ -75,7 +86,7 @@ export default class TrackSeedingPlayer extends DiscordBasePlugin {
   }
 
   defineSqlModels() {
-    this.seedLog = this.options.database.define(
+    this.SeedLog = this.options.database.define(
       `SeedLog_Players`,
       {
         steamID: {
@@ -92,7 +103,7 @@ export default class TrackSeedingPlayer extends DiscordBasePlugin {
       { timestamps: false }
     );
 
-    this.redemptions = this.options.database.define(
+    this.Redemptions = this.options.database.define(
       `SeedLog_Redemptions`,
       {
         discordID: {
@@ -114,8 +125,8 @@ export default class TrackSeedingPlayer extends DiscordBasePlugin {
     this.guild = await this.options.discordClient.guilds.fetch(this.options.serverID);
 
     this.users = this.db.models.AutoWL_DiscordUsers;
-    await this.seedLog.sync();
-    await this.redemptions.sync();
+    await this.SeedLog.sync();
+    await this.Redemptions.sync();
   }
 
   async mount() {
@@ -150,7 +161,9 @@ export default class TrackSeedingPlayer extends DiscordBasePlugin {
     }
 
     if (message.content.toLowerCase().includes('!redeem')) {
-      const existing = await this.redemptions.findOne({ where: { discordID: message.author.id } });
+      if (this.options.noRewards) return;
+
+      const existing = await this.Redemptions.findOne({ where: { discordID: message.author.id } });
       if (existing) {
         message.reply('you already have an active reward');
         return;
@@ -159,11 +172,11 @@ export default class TrackSeedingPlayer extends DiscordBasePlugin {
         this.verbose(1, `POINTS`);
         const rewardRole = await message.guild.roles.resolve(this.options.discordRewardRoleID);
         await message.member.roles.add(rewardRole);
-        this.seedLog.decrement('points', {
+        this.SeedLog.decrement('points', {
           by: this.pointRewardRatio.points,
           where: { steamID: userRow.steamID }
         });
-        this.redemptions.upsert({
+        this.Redemptions.upsert({
           discordID: message.author.id,
           roleID: this.options.discordRewardRoleID,
           expires: new Date(Date.now() + this.pointRewardRatio.whitelistTime)
@@ -195,41 +208,39 @@ export default class TrackSeedingPlayer extends DiscordBasePlugin {
 
   async logPlayers() {
     if (
-      this.server.a2sPlayerCount !== 0 &&
-      this.server.a2sPlayerCount < this.options.seedingThreshold
-    )
-      for (const player of this.server.players) {
-        const match = await this.seedLog.findOne({ where: { steamID: player.steamID } });
-        if (match) {
-          const intervalTimeSec = parseInt(this.options.interval / 1000);
-          await this.seedLog.increment('totalSeedTime', {
-            by: intervalTimeSec,
-            where: { steamID: player.steamID }
-          });
-          await this.seedLog.increment('points', {
-            by: intervalTimeSec,
-            where: { steamID: player.steamID }
-          });
-        } else {
-          await this.seedLog.upsert({
-            steamID: player.steamID,
-            totalSeedTime: 0,
-            points: 0
-          });
+      this.server.a2sPlayerCount > this.options.minSeedingThreshold &&
+      this.server.a2sPlayerCount < this.options.maxSeedingThreshold
+    ) {
+      const currentPlayers = this.server.players.map((player) => player.steamID);
+      const intervalTimeSec = parseInt(this.options.interval / 1000);
+      await this.seedLog.increment('points', {
+        by: intervalTimeSec,
+        where: { steamID: currentPlayers }
+      });
+      await this.seedLog.increment('points', {
+        by: intervalTimeSec,
+        where: { steamID: currentPlayers }
+      });
+      await this.seedLog.findOrCreate({
+        where: { steamID: currentPlayers },
+        defaults: {
+          totalSeedTime: 0,
+          points: 0
         }
-      }
+      });
+    }
   }
 
   async clearExpiredRewards() {
     this.verbose(1, `Clearing Expired Rewards...`);
-    const expired = await this.redemptions.findAll({
+    const expired = await this.Redemptions.findAll({
       where: { expires: { [Sequelize.Op.lte]: Date.now() } }
     });
     for (const e of expired) {
       const member = await this.guild.members.fetch(e.discordID);
       member.roles.remove(await this.guild.roles.resolve(e.roleID));
       this.verbose(3, `removed role from ${member.tag}`);
-      this.redemptions.destroy({ where: { discordID: e.discordID } });
+      this.Redemptions.destroy({ where: { discordID: e.discordID } });
     }
     this.verbose(1, `${expired.length} rewards removed...`);
   }

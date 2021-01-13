@@ -810,36 +810,18 @@ Grafana (NOT YET WORKING WITH V2):
           <summary>TrackSeedingPlayer</summary>
           <h2>TrackSeedingPlayer</h2>
           <p>Tracks players that are seeding and rewards them with "points" which can be used across other plugins for rewards
-"points" represent the number of seconds a player has seeded for 
-This plugin requires DiscordAwnAutoWhitelist to assign rewards properly</p>
+"points" represent the number of seconds a player has seeded for</p>
           <h3>Options</h3>
-          <ul><li><h4>discordClient (Required)</h4>
+          <ul><li><h4>database (Required)</h4>
            <h6>Description</h6>
-           <p>Discord connector name.</p>
+           <p>The Sequelize connector to log server information to.</p>
            <h6>Default</h6>
-           <pre><code>discord</code></pre></li>
-<li><h4>serverID (Required)</h4>
-           <h6>Description</h6>
-           <p>The discord serverID.</p>
-           <h6>Default</h6>
-           <pre><code></code></pre></li><h6>Example</h6>
-           <pre><code>667741905228136459</code></pre>
-<li><h4>channelID (Required)</h4>
-           <h6>Description</h6>
-           <p>The ID of the channel to control awn from.</p>
-           <h6>Default</h6>
-           <pre><code></code></pre></li><h6>Example</h6>
-           <pre><code>667741905228136459</code></pre>
+           <pre><code>mysql</code></pre></li>
 <li><h4>interval</h4>
            <h6>Description</h6>
            <p>Frequency of checking for players.</p>
            <h6>Default</h6>
            <pre><code>150000</code></pre></li>
-<li><h4>database (Required)</h4>
-           <h6>Description</h6>
-           <p>The Sequelize connector to log server information to.</p>
-           <h6>Default</h6>
-           <pre><code>mysql</code></pre></li>
 <li><h4>minSeedingThreshold</h4>
            <h6>Description</h6>
            <p>the minimum number of players in order to count as "seeding".</p>
@@ -849,18 +831,7 @@ This plugin requires DiscordAwnAutoWhitelist to assign rewards properly</p>
            <h6>Description</h6>
            <p>the miximum number of players in order to count as "seeding".</p>
            <h6>Default</h6>
-           <pre><code>40</code></pre></li>
-<li><h4>discordRewardRoleID</h4>
-           <h6>Description</h6>
-           <p>A Discord role to give to a user for points</p>
-           <h6>Default</h6>
-           <pre><code></code></pre></li><h6>Example</h6>
-           <pre><code>667741905228136459</code></pre>
-<li><h4>noRewards</h4>
-           <h6>Description</h6>
-           <p>Determines whether or not rewards are enabled</p>
-           <h6>Default</h6>
-           <pre><code>false</code></pre></li></ul>
+           <pre><code>40</code></pre></li></ul>
         </details>
 
 <br>

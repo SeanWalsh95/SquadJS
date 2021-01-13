@@ -473,7 +473,7 @@ Grafana (NOT YET WORKING WITH V2):
 <details>
           <summary>DiscordAwnAutoWhitelist</summary>
           <h2>DiscordAwnAutoWhitelist</h2>
-          <p>Automatacally push matching DiscordID:SteamID pairs out to AWN Admin List where a users SteamID has a given role in Discord<br><ul><li>👍 = User added to list successfully</li><li>👎 = Discord user does not have approprate role to be added</li><li>👌 = User already in list as defined</li><li>⏏️ = User already in list with diffrent Steam64ID click to overwrite old ID</li><li>❌ = An Error occurred attempting to add user to list</li></ul></p>
+          <p>Automatically request steamIDs from users and add users with a given Discord role to an associated AWN AdminList<br><ul><li>👍 = SteamID registered with bot successfully</li><li>❌ = An Error occurred registering a the user</li></ul></p>
           <h3>Options</h3>
           <ul><li><h4>discordClient (Required)</h4>
            <h6>Description</h6>

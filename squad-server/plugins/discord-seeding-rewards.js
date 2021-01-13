@@ -3,7 +3,7 @@ import DiscordBasePlugin from './discord-base-plugin.js';
 
 const { DataTypes } = Sequelize;
 
-export default class TrackSeedingPlayer extends DiscordBasePlugin {
+export default class DiscordSeedingRewards extends DiscordBasePlugin {
   static get description() {
     return 'Redeems seeding "Points" for a discord Role';
   }
@@ -83,6 +83,8 @@ export default class TrackSeedingPlayer extends DiscordBasePlugin {
     this.guild = await this.options.discordClient.guilds.fetch(this.options.serverID);
 
     this.SeedLog = this.db.models.SeedLog_Players;
+    this.SteamUsers = this.options.database.models.DBLog_SteamUsers;
+    this.DiscordUsers = this.options.database.models.DiscordSteam_Users;
 
     await this.Redemptions.sync();
   }
@@ -100,14 +102,23 @@ export default class TrackSeedingPlayer extends DiscordBasePlugin {
   async onMessage(message) {
     if (message.author.bot || message.channel.id !== this.options.channelID) return;
 
+    const userRow = await this.DiscordUsers.findOne({
+      include: [
+        { model: this.SteamUsers, required: true },
+        { model: this.WhitelistEntries, required: false }
+      ],
+      where: { discordID: message.author.id }
+    });
+    /* Use in case Sequelize associations dont work
     const rawQuerRes = await this.db.query(
-      `SELECT * FROM AutoWL_DiscordUsers u 
+      `SELECT * FROM DiscordSteam_Users u 
       LEFT JOIN (
         SELECT * from SeedLog_Players 
       ) s ON s.steamID = u.steamID WHERE u.discordID = ${message.author.id}`,
       { type: Sequelize.QueryTypes.SELECT }
     );
     const userRow = rawQuerRes[0];
+    */
 
     if (!userRow.steamID) {
       message.reply(

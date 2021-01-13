@@ -69,6 +69,13 @@ export default class TrackSeedingPlayer extends BasePlugin {
   }
 
   async prepareToMount() {
+    this.SteamUsers = this.options.database.models.DBLog_SteamUsers;
+
+    if (this.SteamUsers)
+      this.SeedLog.belongsTo(this.SteamUsers, {
+        foreignKey: { name: 'steamID' }
+      });
+
     await this.SeedLog.sync();
   }
 

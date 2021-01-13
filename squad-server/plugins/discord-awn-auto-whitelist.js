@@ -3,7 +3,6 @@ import axios from 'axios';
 import DiscordBasePlugin from './discord-base-plugin.js';
 
 const { DataTypes } = Sequelize;
-const { Op } = Sequelize;
 
 const steamUrlRgx = /(?:https?:\/\/)?(?<urlPart>steamcommunity.com\/id\/.*?)(?=[\s\b]|$)/;
 const steamIdRgx = /(?<steamID>765\d{14})/;
@@ -63,11 +62,6 @@ export default class DiscordAwnAutoWhitelist extends DiscordBasePlugin {
         description: 'Discord Role ID and the AWN Admin List ID Pairs',
         default: {},
         example: { '667741905228136459': '1234', '667741905228136460': '1452' }
-      },
-      verifySteamID: {
-        required: false,
-        description: 'If this plugin will verify a users Steam64ID when it sees them online',
-        default: false
       }
     };
   }
@@ -90,7 +84,7 @@ export default class DiscordAwnAutoWhitelist extends DiscordBasePlugin {
 
   defineSqlModels() {
     // Record of entries into AdminLists from this bot
-    this.wlEntries = this.options.database.define(
+    this.WhitelistEntries = this.options.database.define(
       `AutoWL_Entries`,
       {
         discordID: {
@@ -114,45 +108,19 @@ export default class DiscordAwnAutoWhitelist extends DiscordBasePlugin {
       },
       { timestamps: false }
     );
-    // Assoications between a DiscordID and SteamID
-    this.discordUsers = this.options.database.define(
-      `AutoWL_DiscordUsers`,
-      {
-        discordID: {
-          type: DataTypes.STRING,
-          primaryKey: true
-        },
-        discordTag: {
-          type: DataTypes.STRING
-        },
-        steamID: {
-          type: DataTypes.STRING,
-          allowNull: false,
-          unique: true
-        },
-        verified: {
-          type: DataTypes.BOOLEAN,
-          allowNull: false,
-          defaultValue: false
-        },
-        token: {
-          type: DataTypes.STRING
-        }
-      },
-      { timestamps: false }
-    );
-
-    this.discordUsers.hasOne(this.wlEntries, {
-      foreignKey: { name: 'discordID' }
-    });
   }
 
   async prepareToMount() {
     this.guild = await this.options.discordClient.guilds.fetch(this.options.serverID);
-    this.steamUsers = this.options.database.models.DBLog_SteamUsers;
+    this.SteamUsers = this.options.database.models.DBLog_SteamUsers;
+    this.DiscordUsers = this.options.database.models.DiscordSteam_Users;
 
-    await this.discordUsers.sync();
-    await this.wlEntries.sync();
+    if (this.SteamUsers)
+      this.WhitelistEntries.belongsTo(this.DiscordUsers, {
+        foreignKey: { name: 'discordID' }
+      });
+
+    await this.WhitelistEntries.sync();
   }
 
   async mount() {
@@ -163,7 +131,6 @@ export default class DiscordAwnAutoWhitelist extends DiscordBasePlugin {
       await this.updateEntrysFromRoles();
     }, 1000 * 60 * 1 /* 15 */);
     this.requestMissingSteamIDsInterval = setInterval(async () => {
-      if (this.options.verifySteamID) this.verifySteamID();
       this.requestMissingSteamIDs();
     }, 1000 * 60 * 0.5 /* 30 */);
   }
@@ -182,17 +149,6 @@ export default class DiscordAwnAutoWhitelist extends DiscordBasePlugin {
     // only respond to channel in options and DMs
     if (!(message.channel.id === this.options.channelID) && !(message.channel.type === 'dm'))
       return;
-
-    if (this.options.verifySteamID) {
-      const user = this.discordUsers.findOne({ where: { steamID: message.author.id } });
-      if (!user.verified && message.content.includes(user.token)) {
-        this.discordUsers.upsert({
-          steamID: message.author.id,
-          verified: true,
-          token: ''
-        });
-      }
-    }
 
     if (message.channel.type === 'dm') {
       this.verbose(3, `Rceived DM from ${message.author.tag}`);
@@ -237,7 +193,7 @@ export default class DiscordAwnAutoWhitelist extends DiscordBasePlugin {
     this.verbose(2, `Scraped Steam64ID:${steamData.steamid} from ${steamData.url}`);
 
     // non blocking upsert
-    this.steamUsers.upsert({
+    this.SteamUsers.upsert({
       steamID: steamData.steamid,
       lastName: steamData.personaname
     });
@@ -276,10 +232,20 @@ export default class DiscordAwnAutoWhitelist extends DiscordBasePlugin {
       entry.listID = listID;
     }
 
-    const lookup = await this.discordUsers.findOne({
-      include: [{ model: this.wlEntries, required: false }],
+    const lookup = await this.DiscordUsers.findOne({
+      include: [{ model: this.WhitelistEntries, required: false }],
       where: { discordID: entry.member.id }
     });
+    /* Use in case Sequelize associations dont work
+    const rawQuerRes = await this.db.query(
+      `SELECT * FROM DiscordSteam_Users u 
+      LEFT JOIN (
+        SELECT * from AutoWL_Entries 
+      ) s ON s.discordID = u.discordID WHERE u.discordID = ${entry.member.id}`,
+      { type: Sequelize.QueryTypes.SELECT }
+    );
+    const lookup = rawQuerRes[0];
+    */
 
     // user already exists
     if (lookup) {
@@ -316,9 +282,19 @@ export default class DiscordAwnAutoWhitelist extends DiscordBasePlugin {
 
     const membersToPrune = [];
 
-    const userRows = await this.discordUsers.findAll({
-      include: [{ model: this.wlEntries, required: true }]
+    const userRows = await this.DiscordUsers.findAll({
+      include: [{ model: this.WhitelistEntries, required: true }]
     });
+    /* Use in case Sequelize associations dont work
+    const userRows = await this.db.query(
+      `SELECT * FROM DiscordSteam_Users u 
+      INNER JOIN (
+        SELECT * from AutoWL_Entries 
+      ) s ON s.discordID = u.discordID`,
+      { type: Sequelize.QueryTypes.SELECT }
+    );
+    */
+
     for (const userRow of userRows) {
       const member = await this.guild.members.fetch(userRow.discordID);
       const listID = this.getMemberListID(member);
@@ -343,31 +319,6 @@ export default class DiscordAwnAutoWhitelist extends DiscordBasePlugin {
     }
   }
 
-  async verifySteamID() {
-    const unverifiedOnline = await this.discordUsers.findAll({
-      where: {
-        [Op.and]: [
-          { verified: false },
-          { steamID: this.server.players.map((player) => player.steamID) }
-        ]
-      }
-    });
-
-    for (const user of unverifiedOnline) {
-      this.server.rcon.warn(user.steamID, `Verify your steamID with ${user.token}`);
-    }
-  }
-
-  generateToken() {
-    let token = '';
-    const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-    const charactersLength = characters.length;
-    for (let i = 0; i < this.tokenLength; i++) {
-      token += characters.charAt(Math.floor(Math.random() * charactersLength));
-    }
-    return token;
-  }
-
   /** This requires the discord bot to have Privileged Gateway - SERVER MEMBERS INTENT  enabled */
   async updateEntrysFromRoles() {
     this.verbose(1, `Updating role rewards...`);
@@ -378,8 +329,8 @@ export default class DiscordAwnAutoWhitelist extends DiscordBasePlugin {
 
       for (const [memberID, member] of await this.guild.members.fetch()) {
         if (!member._roles.includes(role.id)) continue;
-        const userData = await this.discordUsers.findOne({
-          include: [{ model: this.wlEntries, required: false }],
+        const userData = await this.DiscordUsers.findOne({
+          include: [{ model: this.WhitelistEntries, required: false }],
           where: { discordID: memberID }
         });
         if (!userData) {
@@ -420,32 +371,12 @@ export default class DiscordAwnAutoWhitelist extends DiscordBasePlugin {
     }
   }
 
-  async storeSteamID(discordUser, steamID) {
-    const user = await this.discordUsers.findOrCreate({
-      where: { steamID: steamID },
-      defaults: {
-        discordID: discordUser.id,
-        steamID: steamID,
-        discordTag: discordUser.tag,
-        token: this.generateToken()
-      }
-    });
-    if (user && !user.verified) {
-      await this.discordUsers.upsert({
-        discordID: discordUser.id,
-        steamID: steamID,
-        discordTag: discordUser.tag
-      });
-    }
-  }
-
   /** Add admin to AWN Admin List
    *   @param {ListEntry} entry - ListEntry Object for the member to be added */
   async addAdmin(entry) {
     const res = await this.awn.addAdmin(entry.listID, entry.steamID);
     if (res.success) {
-      await this.storeSteamID(entry.member.user, entry.steamID);
-      await this.wlEntries.upsert({
+      await this.WhitelistEntries.upsert({
         discordID: entry.member.id,
         awnAdminID: res.data.id,
         awnListID: entry.listID,
@@ -463,7 +394,7 @@ export default class DiscordAwnAutoWhitelist extends DiscordBasePlugin {
   async removeAdmin(discordID, awnListID, awnAdminID) {
     const res = await this.awn.removeAdmin(awnListID, awnAdminID);
     if (res.success) {
-      await this.wlEntries.destroy({ where: { discordID: discordID } });
+      await this.WhitelistEntries.destroy({ where: { discordID: discordID } });
     }
     return res;
   }

@@ -510,7 +510,12 @@ Grafana (NOT YET WORKING WITH V2):
            <pre><code>{
   "667741905228136459": "1234",
   "667741905228136460": "1452"
-}</code></pre></ul>
+}</code></pre>
+<li><h4>verifySteamID</h4>
+           <h6>Description</h6>
+           <p>If this plugin will verify a users Steam64ID when it sees them online</p>
+           <h6>Default</h6>
+           <pre><code>false</code></pre></li></ul>
         </details>
 
 <details>

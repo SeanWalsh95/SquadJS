@@ -138,7 +138,8 @@
       "database": "mysql",
       "serverID": "",
       "channelID": "",
-      "whitelistRoles": {}
+      "whitelistRoles": {},
+      "verifySteamID": false
     },
     {
       "plugin": "DiscordChat",

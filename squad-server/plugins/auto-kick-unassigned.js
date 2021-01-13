@@ -82,8 +82,8 @@ export default class AutoKickUnassigned extends BasePlugin {
   constructor(server, options, connectors) {
     super(server, options, connectors);
 
-    this.admins = server.getAdminsWithPermission('canseeadminchat');
-    this.whitelist = server.getAdminsWithPermission('reserve');
+    this.adminPermission = 'canseeadminchat';
+    this.whitelistPermission = 'reserve';
 
     this.kickTimeout = options.unassignedTimer * 1000;
     this.warningInterval = options.frequencyOfWarnings * 1000;
@@ -152,12 +152,15 @@ export default class AutoKickUnassigned extends BasePlugin {
 
     if (forceUpdate) await this.server.updatePlayerList();
 
+    const admins = this.server.getAdminsWithPermission(this.adminPermission);
+    const whitelist = this.server.getAdminsWithPermission(this.whitelistPermission);
+
     // loop through players on server and start tracking players not in a squad
     for (const player of this.server.players) {
       const isTracked = player.steamID in this.trackedPlayers;
       const isUnassigned = player.squadID === null;
-      const isAdmin = player.steamID in this.admins;
-      const isWhitelist = player.steamID in this.whitelist;
+      const isAdmin = admins.includes(player.steamID);
+      const isWhitelist = whitelist.includes(player.steamID);
 
       // tracked player joined a squad remove them (redundant afer adding PLAYER_SQUAD_CHANGE, keeping for now)
       if (!isUnassigned && isTracked) this.untrackPlayer(player.steamID);
@@ -165,15 +168,13 @@ export default class AutoKickUnassigned extends BasePlugin {
       if (!isUnassigned) continue;
 
       if (isAdmin) this.verbose(2, `Admin is Unassigned: ${player.name}`);
+      if (isAdmin && this.options.ignoreAdmins) continue;
+
       if (isWhitelist) this.verbose(2, `Whitelist player is Unassigned: ${player.name}`);
+      if (isWhitelist && this.options.ignoreWhitelist) continue;
 
       // start tracking player
-      if (
-        !isTracked &&
-        !(isAdmin && this.options.ignoreAdmins) &&
-        !(isWhitelist && this.options.ignoreWhitelist)
-      )
-        this.trackedPlayers[player.steamID] = this.trackPlayer({ player });
+      if (!isTracked) this.trackedPlayers[player.steamID] = this.trackPlayer({ player });
     }
   }
 

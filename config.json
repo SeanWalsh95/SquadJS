@@ -231,8 +231,10 @@
       "channelID": "",
       "interval": 150000,
       "database": "mysql",
-      "seedingThreshold": 50,
-      "discordRewardRoleID": ""
+      "minSeedingThreshold": 3,
+      "maxSeedingThreshold": 40,
+      "discordRewardRoleID": "",
+      "noRewards": false
     }
   ],
   "logger": {

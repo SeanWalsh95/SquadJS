@@ -24,9 +24,7 @@ export default class AwnAPI {
     let ret = null;
 
     if (!endpoint.startsWith('/')) endpoint = `/${endpoint}`;
-
     if (!endpoint.startsWith('/v5/')) endpoint = `/v5/org/${this.orgID}${endpoint}`;
-
     if (endpoint.includes(':orgId')) endpoint = endpoint.replace(':orgId', `${this.orgID}`);
 
     try {
@@ -38,7 +36,7 @@ export default class AwnAPI {
       };
 
       Logger.verbose('awnAPI', 1, `${axiosRequest.method.toUpperCase()}: ${axiosRequest.url}`);
-      Logger.verbose('awnAPI', 3, `Data: ${JSON.stringify(data)}`);
+      Logger.verbose('awnAPI', 3, `Request Data: ${JSON.stringify(data)}`);
 
       const res = await axios(axiosRequest);
 
@@ -51,7 +49,8 @@ export default class AwnAPI {
         statusText: err.response.statusText,
         error: err.response.data.error
       };
-      Logger.verbose('awnAPI', 1, `ERROR: ${JSON.stringify(ret)}`);
+      Logger.verbose('awnAPI', 1, `ERROR: ${JSON.stringify(err.response.status)}`);
+      Logger.verbose('awnAPI', 3, `ERROR: ${JSON.stringify(ret)}`);
       return ret;
     }
   }

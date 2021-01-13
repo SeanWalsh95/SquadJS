@@ -7,11 +7,6 @@ const { DataTypes } = Sequelize;
 const steamUrlRgx = /(?:https?:\/\/)?(?<urlPart>steamcommunity.com\/id\/.*?)(?=[\s\b]|$)/;
 const steamIdRgx = /(?<steamID>765\d{14})/;
 
-/**
- *  Refactor this to have two seprate systems where one adds to the DB and the other syncs the DB with AWN
- *  prefer try catch with a funtion that throws errors as opposed to if else catch blocks
- *
- */
 class ListEntry {
   constructor() {
     this.addedBy = 'unknown'; // Source of the whitelist request
@@ -25,12 +20,9 @@ class ListEntry {
 export default class DiscordAwnAutoWhitelist extends DiscordBasePlugin {
   static get description() {
     return (
-      'Automatacally push matching DiscordID:SteamID pairs out to AWN Admin List where a users SteamID has a given role in Discord<br>' +
-      '<ul><li>👍 = User added to list successfully</li>' +
-      '<li>👎 = Discord user does not have approprate role to be added</li>' +
-      '<li>👌 = User already in list as defined</li>' +
-      '<li>⏏️ = User already in list with diffrent Steam64ID click to overwrite old ID</li>' +
-      '<li>❌ = An Error occurred attempting to add user to list</li></ul>'
+      'Automatically request steamIDs from users and add users with a given Discord role to an associated AWN AdminList<br>' +
+      '<ul><li>👍 = SteamID registered with bot successfully</li>' +
+      '<li>❌ = An Error occurred registering a the user</li></ul>'
     );
   }
 
@@ -142,10 +134,10 @@ export default class DiscordAwnAutoWhitelist extends DiscordBasePlugin {
 
   async prepareToMount() {
     this.guild = await this.options.discordClient.guilds.fetch(this.options.serverID);
+    this.steamUsers = this.options.database.models.DBLog_SteamUsers;
 
     await this.discordUsers.sync();
     await this.wlEntries.sync();
-    this.steamUsers = this.options.database.models.DBLog_SteamUsers;
   }
 
   async mount() {
@@ -162,9 +154,10 @@ export default class DiscordAwnAutoWhitelist extends DiscordBasePlugin {
   }
 
   async unmount() {
+    this.options.discordClient.removeEventListener('message', this.onMessage);
+
     clearInterval(this.usersUpdateInterval);
     clearInterval(this.requestMissingSteamIDsInterval);
-    this.options.discordClient.removeEventListener('message', this.onMessage);
   }
 
   async onMessage(message) {
@@ -189,21 +182,17 @@ export default class DiscordAwnAutoWhitelist extends DiscordBasePlugin {
     }
   }
 
-  /**
-   * returns awnListID if a given member has the approprate roles, otherwise returns null
-   * @param {Object} member - discord.js member object
-   */
+  /** returns awnListID if a given member has the approprate roles, otherwise returns null
+   *   @param {Object} member - discord.js member object  */
   getMemberListID(member) {
-    for (const [role, roleListID] of Object.entries(this.options.whitelistRoles))
-      if (member._roles.includes(role)) return roleListID;
+    for (const [roleID, roleListID] of Object.entries(this.options.whitelistRoles))
+      if (member._roles.includes(roleID)) return roleListID;
     return null;
   }
 
-  /**
-   * Scrape Steamcommunity profile for Steam64ID
-   * @param {String} communityURL - URL to community profile
-   * @returns {String|null} Steam64ID or null if the scrape failed
-   */
+  /** Scrape Steamcommunity profile for Steam64ID
+   *   @param {String} communityURL - URL to community profile
+   *   @returns {String|null} Steam64ID or null if the scrape failed */
   async getSteamIdFromURL(communityURL) {
     const res = await axios({
       method: 'get',
@@ -230,12 +219,9 @@ export default class DiscordAwnAutoWhitelist extends DiscordBasePlugin {
     return steamData.steamid;
   }
 
-  /**
-   * Parses given discord message for discord/steam ID's
-   *
-   * @param {Object} message  - A discord.js message object
-   * @returns {String} Emoji - An emoji responce to the original message
-   */
+  /** Parses given discord message for discord/steam ID's
+   *   @param {Object} message  - A discord.js message object
+   *   @returns {String} Emoji - An emoji responce to the original message */
   async parseDiscordMessage(message) {
     const steamIdMatch = message.content.match(steamIdRgx);
     const steamURLMatch = message.content.match(steamUrlRgx);
@@ -245,16 +231,22 @@ export default class DiscordAwnAutoWhitelist extends DiscordBasePlugin {
 
     const entry = new ListEntry();
 
-    if (steamURLMatch) entry.steamID = await this.getSteamIdFromURL(steamURLMatch.groups.urlPart);
-    else entry.steamID = steamIdMatch.groups.steamID;
+    if (steamURLMatch) {
+      entry.steamID = await this.getSteamIdFromURL(steamURLMatch.groups.urlPart);
+    } else {
+      this.getSteamIdFromURL(`https://steamcommunity.com/profiles/${steamIdMatch.groups.steamID}/`);
+      entry.steamID = steamIdMatch.groups.steamID;
+    }
 
-    entry.addedBy = 'User Message';
+    if (message.channel.type === 'dm') entry.addedBy = 'DM Message';
+    else entry.addedBy = 'Channel Message';
+
     entry.member = await this.guild.members.fetch(message.author.id);
 
     // check if member has whitelist role
     const listID = this.getMemberListID(entry.member);
     if (listID) {
-      entry.reason = 'Discord Role';
+      entry.reason = `Discord Role`;
       entry.listID = listID;
     }
 
@@ -263,6 +255,7 @@ export default class DiscordAwnAutoWhitelist extends DiscordBasePlugin {
       where: { discordID: entry.member.id }
     });
 
+    // user already exists
     if (lookup) {
       // user in list as entered
       if (lookup.steamID === entry.steamID) return '👍';
@@ -278,6 +271,8 @@ export default class DiscordAwnAutoWhitelist extends DiscordBasePlugin {
       if (res) return '👍';
       else return '❌';
     }
+
+    if (!listID) return '❌';
 
     const res = await this.addAdmin(entry);
 
@@ -329,18 +324,15 @@ export default class DiscordAwnAutoWhitelist extends DiscordBasePlugin {
       const role = await this.guild.roles.fetch(roleID);
       if (!role) continue;
       this.verbose(2, `Searching "${role.name}"...`);
+
       for (const [memberID, member] of await this.guild.members.fetch()) {
         if (!member._roles.includes(role.id)) continue;
-
         const userData = await this.discordUsers.findOne({
           include: [{ model: this.wlEntries, required: false }],
           where: { discordID: memberID }
         });
         if (!userData) {
-          this.verbose(
-            3,
-            `${member.displayName} not registered for rewards from role ${role.name}`
-          );
+          this.verbose(3, `${member.displayName} not registered`);
           this.missingSteamIDs[member.id] = null;
           continue;
         }
@@ -385,11 +377,8 @@ export default class DiscordAwnAutoWhitelist extends DiscordBasePlugin {
     });
   }
 
-  /**
-   * Add admin to AWN Admin List
-   *
-   * @param {ListEntry} entry - ListEntry Object for the member to be added
-   */
+  /** Add admin to AWN Admin List
+   *   @param {ListEntry} entry - ListEntry Object for the member to be added */
   async addAdmin(entry) {
     const res = await this.awn.addAdmin(entry.listID, entry.steamID);
     if (res.success) {
@@ -405,13 +394,10 @@ export default class DiscordAwnAutoWhitelist extends DiscordBasePlugin {
     return res;
   }
 
-  /**
-   * Removes Admin from AWN Admin List and DB
-   *
-   * @param {String} discordID - discord user unique id
-   * @param {String} awnListID  - the list to remove the user from
-   * @param {String} awnAdminID  - the awn admin id to remove from the list
-   */
+  /** Removes Admin from AWN Admin List and DB
+   *   @param {String} discordID - discord user unique id
+   *   @param {String} awnListID  - the list to remove the user from
+   *   @param {String} awnAdminID  - the awn admin id to remove from the list */
   async removeAdmin(discordID, awnListID, awnAdminID) {
     const res = await this.awn.removeAdmin(awnListID, awnAdminID);
     if (res.success) {

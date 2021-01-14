@@ -1,6 +1,6 @@
-import axios from 'axios';
 import Sequelize from 'sequelize';
 import DiscordBasePlugin from './discord-base-plugin.js';
+import scrapeSteamProfile from '../utils/scrape-steam-profile.js';
 
 const { DataTypes } = Sequelize;
 const { Op } = Sequelize;
@@ -174,29 +174,17 @@ export default class DiscordSteamLink extends DiscordBasePlugin {
   }
 
   async getSteamIdFromURL(communityURL) {
-    const res = await axios({
-      method: 'get',
-      url: `https://${communityURL}`
-    });
-
-    /**
-     *  steamData object = {
-     *    "url":"<profile_url>",
-     *    "steamid":"<id>",
-     *    "personaname":"<current_displayname>",
-     *    "summary":"<summary_from_profile>"
-     *  }
-     */
-    const steamData = JSON.parse(res.data.match(/(?<=g_rgProfileData\s*=\s*)\{.*\}/));
-    this.verbose(2, `Scraped Steam64ID:${steamData.steamid} from ${steamData.url}`);
-
-    // non blocking upsert
-    this.SteamUsers.upsert({
-      steamID: steamData.steamid,
-      lastName: steamData.personaname
-    });
-
-    return steamData.steamid;
+    const steamData = scrapeSteamProfile(communityURL);
+    if (steamData) {
+      await this.db.query(
+        `INSERT DBLog_SteamUsers (steamID, lastName)
+         VALUES (${steamData.steamID},${steamData.name})
+         ON DUPLICATE KEY UPDATE
+         lastName = ${steamData.name}`,
+        { type: Sequelize.QueryTypes.INSERT }
+      );
+      return steamData.steamID;
+    }
   }
 
   async sendUserToken() {

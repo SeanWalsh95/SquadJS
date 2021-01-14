@@ -720,13 +720,13 @@ Grafana (NOT YET WORKING WITH V2):
            <pre><code>mysql</code></pre></li>
 <li><h4>channelID (Required)</h4>
            <h6>Description</h6>
-           <p>The ID of the channel to control awn from.</p>
+           <p>The channelID that users are directed to post their SteamIDs to becides DMs.</p>
            <h6>Default</h6>
            <pre><code></code></pre></li><h6>Example</h6>
            <pre><code>667741905228136459</code></pre>
 <li><h4>verifySteamID</h4>
            <h6>Description</h6>
-           <p>If this plugin will verify a users Steam64ID when it sees them online</p>
+           <p>If this plugin will verify a users Steam64ID when it sees them online in game</p>
            <h6>Default</h6>
            <pre><code>false</code></pre></li></ul>
         </details>

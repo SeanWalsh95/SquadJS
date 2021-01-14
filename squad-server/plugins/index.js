@@ -10,7 +10,9 @@ import DiscordChat from './discord-chat.js';
 import DiscordDebug from './discord-debug.js';
 import DiscordRcon from './discord-rcon.js';
 import DiscordRoundWinner from './discord-round-winner.js';
+import DiscordSeedingRewards from './discord-seeding-rewards.js';
 import DiscordServerStatus from './discord-server-status.js';
+import DiscordSteamLink from './discord-steam-link.js';
 import DiscordSubsystemRestarter from './discord-subsystem-restarter.js';
 import DiscordTeamkill from './discord-teamkill.js';
 import IntervalledBroadcasts from './intervalled-broadcasts.js';
@@ -32,7 +34,9 @@ const plugins = [
   DiscordDebug,
   DiscordRcon,
   DiscordRoundWinner,
+  DiscordSeedingRewards,
   DiscordServerStatus,
+  DiscordSteamLink,
   DiscordSubsystemRestarter,
   DiscordTeamkill,
   IntervalledBroadcasts,

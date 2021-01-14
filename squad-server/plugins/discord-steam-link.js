@@ -92,11 +92,6 @@ export default class DiscordSteamLink extends DiscordBasePlugin {
   async prepareToMount() {
     this.SteamUsers = this.options.database.models.DBLog_SteamUsers;
 
-    if (this.SteamUsers)
-      this.DiscordUsers.belongsTo(this.SteamUsers, {
-        foreignKey: { name: 'steamID' }
-      });
-
     await this.DiscordUsers.sync();
   }
 
@@ -106,7 +101,7 @@ export default class DiscordSteamLink extends DiscordBasePlugin {
     if (this.options.verifySteamID)
       this.sendUserTokenInterval = setInterval(async () => {
         this.sendUserToken();
-      }, 1000 * 60 * 10);
+      }, 1000 * 60 * 0.25 /*10*/);
   }
 
   async unmount() {
@@ -124,16 +119,18 @@ export default class DiscordSteamLink extends DiscordBasePlugin {
       return;
 
     // check is message is verifacation message
-    if (this.options.verifySteamID && message.match(tokenRgx)) {
+    if (this.options.verifySteamID && message.content.match(tokenRgx)) {
       const user = await this.DiscordUsers.findOne({
-        [Op.and]: [{ verified: false }, { steamID: message.author.id }]
+        [Op.and]: [{ verified: false }, { discordID: message.author.id }]
       });
       if (user && message.content.includes(user.token)) {
-        this.DiscordUsers.upsert({
-          steamID: message.author.id,
+        await this.DiscordUsers.upsert({
+          discordID: message.author.id,
+          steamID: user.steamID,
           verified: true,
           token: ''
         });
+        this.verbose(1, `Verified ${message.author.tag} from token`)
       }
     } else {
       const steamIdMatch = message.content.match(steamIdRgx);
@@ -147,16 +144,15 @@ export default class DiscordSteamLink extends DiscordBasePlugin {
         steamID = await this.getSteamIdFromURL(steamURLMatch.groups.urlPart);
       } else {
         this.getSteamIdFromURL(
-          `https://steamcommunity.com/profiles/${steamIdMatch.groups.steamID}/`
+          `steamcommunity.com/profiles/${steamIdMatch.groups.steamID}/`
         );
         steamID = steamIdMatch.groups.steamID;
       }
 
       // find or creat initial user entry
       const user = await this.DiscordUsers.findOrCreate({
-        where: { steamID: steamID },
+        where: { discordID: discordID },
         defaults: {
-          discordID: message.author.id,
           steamID: steamID,
           discordTag: message.author.tag,
           token: this.generateToken()
@@ -171,6 +167,7 @@ export default class DiscordSteamLink extends DiscordBasePlugin {
           discordTag: message.author.tag
         });
       }
+      this.verbose(1, `Added SteamID for ${message.author.tag}`)
     }
   }
 
@@ -211,7 +208,8 @@ export default class DiscordSteamLink extends DiscordBasePlugin {
     });
 
     for (const user of unverifiedOnline) {
-      this.server.rcon.warn(user.steamID, `Verify your steamID with ${user.token}`);
+      this.server.rcon.warn(user.steamID, `Verify your SteamID with "${user.token}"`);
+      this.verbose(1, `Sending token (${user.token}) to ${user.discordTag} (${user.steamID})`)
     }
   }
 }

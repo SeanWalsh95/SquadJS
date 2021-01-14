@@ -3,6 +3,7 @@ import axios from 'axios';
 import DiscordBasePlugin from './discord-base-plugin.js';
 
 const { DataTypes } = Sequelize;
+const { HasOne } = Sequelize;
 
 const steamUrlRgx = /(?:https?:\/\/)?(?<urlPart>steamcommunity.com\/id\/.*?)(?=[\s\b]|$)/;
 const steamIdRgx = /(?<steamID>765\d{14})/;
@@ -71,6 +72,7 @@ export default class DiscordAwnAutoWhitelist extends DiscordBasePlugin {
 
     this.defineSqlModels();
 
+    this.db = this.options.database
     this.discord = this.options.discordClient;
     this.awn = this.options.awnAPI;
 
@@ -115,11 +117,6 @@ export default class DiscordAwnAutoWhitelist extends DiscordBasePlugin {
     this.SteamUsers = this.options.database.models.DBLog_SteamUsers;
     this.DiscordUsers = this.options.database.models.DiscordSteam_Users;
 
-    if (this.SteamUsers)
-      this.WhitelistEntries.belongsTo(this.DiscordUsers, {
-        foreignKey: { name: 'discordID' }
-      });
-
     await this.WhitelistEntries.sync();
   }
 
@@ -143,6 +140,7 @@ export default class DiscordAwnAutoWhitelist extends DiscordBasePlugin {
   }
 
   async onMessage(message) {
+    return;
     // dont respond to bots
     if (message.author.bot) return;
 
@@ -216,7 +214,7 @@ export default class DiscordAwnAutoWhitelist extends DiscordBasePlugin {
     if (steamURLMatch) {
       entry.steamID = await this.getSteamIdFromURL(steamURLMatch.groups.urlPart);
     } else {
-      this.getSteamIdFromURL(`https://steamcommunity.com/profiles/${steamIdMatch.groups.steamID}/`);
+      this.getSteamIdFromURL(`steamcommunity.com/profiles/${steamIdMatch.groups.steamID}/`);
       entry.steamID = steamIdMatch.groups.steamID;
     }
 
@@ -232,11 +230,6 @@ export default class DiscordAwnAutoWhitelist extends DiscordBasePlugin {
       entry.listID = listID;
     }
 
-    const lookup = await this.DiscordUsers.findOne({
-      include: [{ model: this.WhitelistEntries, required: false }],
-      where: { discordID: entry.member.id }
-    });
-    /* Use in case Sequelize associations dont work
     const rawQuerRes = await this.db.query(
       `SELECT * FROM DiscordSteam_Users u 
       LEFT JOIN (
@@ -245,7 +238,6 @@ export default class DiscordAwnAutoWhitelist extends DiscordBasePlugin {
       { type: Sequelize.QueryTypes.SELECT }
     );
     const lookup = rawQuerRes[0];
-    */
 
     // user already exists
     if (lookup) {
@@ -282,10 +274,6 @@ export default class DiscordAwnAutoWhitelist extends DiscordBasePlugin {
 
     const membersToPrune = [];
 
-    const userRows = await this.DiscordUsers.findAll({
-      include: [{ model: this.WhitelistEntries, required: true }]
-    });
-    /* Use in case Sequelize associations dont work
     const userRows = await this.db.query(
       `SELECT * FROM DiscordSteam_Users u 
       INNER JOIN (
@@ -293,7 +281,6 @@ export default class DiscordAwnAutoWhitelist extends DiscordBasePlugin {
       ) s ON s.discordID = u.discordID`,
       { type: Sequelize.QueryTypes.SELECT }
     );
-    */
 
     for (const userRow of userRows) {
       const member = await this.guild.members.fetch(userRow.discordID);
@@ -302,7 +289,7 @@ export default class DiscordAwnAutoWhitelist extends DiscordBasePlugin {
         membersToPrune.push(userRow);
         continue;
       }
-      if (listID !== userRow.AutoWL_Entry.awnListID) {
+      if (listID !== userRow.awnListID) {
         membersToPrune.push(userRow);
         continue;
       }
@@ -311,8 +298,8 @@ export default class DiscordAwnAutoWhitelist extends DiscordBasePlugin {
     for (const member of membersToPrune) {
       const res = await this.removeAdmin(
         member.discordID,
-        member.AutoWL_Entry.awnListID,
-        member.AutoWL_Entry.awnAdminID
+        member.awnListID,
+        member.awnAdminID
       );
       if (res) this.verbose(1, `Pruned user ${member.discordTag}(${member.steamID})`);
       else this.verbose(1, `Failed to prune ${member.discordTag}(${member.steamID})`);
@@ -329,16 +316,22 @@ export default class DiscordAwnAutoWhitelist extends DiscordBasePlugin {
 
       for (const [memberID, member] of await this.guild.members.fetch()) {
         if (!member._roles.includes(role.id)) continue;
-        const userData = await this.DiscordUsers.findOne({
-          include: [{ model: this.WhitelistEntries, required: false }],
-          where: { discordID: memberID }
-        });
+
+        const rawQuerRes = await this.db.query(
+          `SELECT * FROM DiscordSteam_Users u 
+          LEFT JOIN (
+            SELECT * from AutoWL_Entries 
+          ) s ON s.discordID = u.discordID WHERE u.discordID = ${memberID}`,
+          { type: Sequelize.QueryTypes.SELECT }
+        );
+        const userData = rawQuerRes[0];
+
         if (!userData) {
           this.verbose(3, `${member.displayName} not registered`);
           this.missingSteamIDs[member.id] = null;
           continue;
         }
-        if (userData.AutoWL_Entry) {
+        if (userData.awnAdminID) {
           this.verbose(3, `${member.displayName} already in list`);
           continue;
         }

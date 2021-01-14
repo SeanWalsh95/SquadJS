@@ -1,28 +1,31 @@
 import Sequelize from 'sequelize';
 import DiscordBasePlugin from './discord-base-plugin.js';
-import scrapeSteamProfile from '../utils/scrape-steam-profile.js';
 
 const { DataTypes } = Sequelize;
 
-const steamUrlRgx = /(?:https?:\/\/)?(?<urlPart>steamcommunity.com\/id\/.*?)(?=[\s\b]|$)/;
-const steamIdRgx = /(?<steamID>765\d{14})/;
-
+/**
+ * @typedef {Object} ListEntry
+ * @property {String} addedBy - Source of the whitelist request
+ * @property {String} member - DiscordJS Member object of the user looking for whitelist
+ * @property {String} steamID - Steam64ID of to be added to the whitelist
+ * @property {String} listID - AWN Admin List ID
+ * @property {String} reason - The reason the user was added
+ */
 class ListEntry {
   constructor() {
-    this.addedBy = 'unknown'; // Source of the whitelist request
-    this.member = null; // DiscordJS Member object of the user looking for whitelist.
-    this.steamID = null; // Steam64ID of to be added to the whitelist
-    this.listID = null; // AWN Admin List ID
-    this.reason = null; // The reason the user was added
+    this.addedBy = 'unknown';
+    this.member = null;
+    this.steamID = null;
+    this.listID = null;
+    this.reason = null;
   }
 }
 
 export default class DiscordAwnAutoWhitelist extends DiscordBasePlugin {
   static get description() {
     return (
-      'Automatically request steamIDs from users and add users with a given Discord role to an associated AWN AdminList<br>' +
-      '<ul><li>👍 = SteamID registered with bot successfully</li>' +
-      '<li>❌ = An Error occurred registering a the user</li></ul>'
+      'Automatically add Discord users with a given role to an associated AWN AdminList<br>' +
+      'This plugin relys on the DiscordSteamLink plugin to source Steam64IDs from users'
     );
   }
 
@@ -52,8 +55,8 @@ export default class DiscordAwnAutoWhitelist extends DiscordBasePlugin {
         example: '667741905228136459'
       },
       channelID: {
-        required: true,
-        description: 'The ID of the channel to control awn from.',
+        required: false,
+        description: 'The channelID to notify members from.',
         default: '',
         example: '667741905228136459'
       },
@@ -113,15 +116,10 @@ export default class DiscordAwnAutoWhitelist extends DiscordBasePlugin {
 
   async prepareToMount() {
     this.guild = await this.options.discordClient.guilds.fetch(this.options.serverID);
-    this.SteamUsers = this.options.database.models.DBLog_SteamUsers;
-    this.DiscordUsers = this.options.database.models.DiscordSteam_Users;
-
     await this.WhitelistEntries.sync();
   }
 
   async mount() {
-    this.options.discordClient.on('message', this.onMessage);
-
     this.usersUpdateInterval = setInterval(async () => {
       await this.pruneUsers();
       await this.updateEntrysFromRoles();
@@ -132,34 +130,8 @@ export default class DiscordAwnAutoWhitelist extends DiscordBasePlugin {
   }
 
   async unmount() {
-    this.options.discordClient.removeEventListener('message', this.onMessage);
-
     clearInterval(this.usersUpdateInterval);
     clearInterval(this.requestMissingSteamIDsInterval);
-  }
-
-  async onMessage(message) {
-    const alwaysTrue = true;
-    if (alwaysTrue) return;
-    // dont respond to bots
-    if (message.author.bot) return;
-
-    // only respond to channel in options and DMs
-    if (!(message.channel.id === this.options.channelID) && !(message.channel.type === 'dm'))
-      return;
-
-    if (message.channel.type === 'dm') {
-      this.verbose(3, `Rceived DM from ${message.author.tag}`);
-      delete this.missingSteamIDs[message.author.id];
-    }
-
-    try {
-      const reaction = await this.parseDiscordMessage(message);
-      if (reaction) message.react(reaction);
-    } catch (err) {
-      this.verbose(3, `${err.message}\n ${err.stack}`);
-      message.react('❌');
-    }
   }
 
   /** returns awnListID if a given member has the approprate roles, otherwise returns null
@@ -168,90 +140,6 @@ export default class DiscordAwnAutoWhitelist extends DiscordBasePlugin {
     for (const [roleID, roleListID] of Object.entries(this.options.whitelistRoles))
       if (member._roles.includes(roleID)) return roleListID;
     return null;
-  }
-
-  async getSteamIdFromURL(communityURL) {
-    const steamData = scrapeSteamProfile(communityURL);
-    if (steamData) {
-      await this.db.query(
-        `INSERT DBLog_SteamUsers (steamID, lastName)
-         VALUES (${steamData.steamID},${steamData.name})
-         ON DUPLICATE KEY UPDATE
-         lastName = ${steamData.name}`,
-        { type: Sequelize.QueryTypes.INSERT }
-      );
-      return steamData.steamID;
-    }
-  }
-
-  /** Parses given discord message for discord/steam ID's
-   *   @param {Object} message  - A discord.js message object
-   *   @returns {String} Emoji - An emoji responce to the original message */
-  async parseDiscordMessage(message) {
-    const steamIdMatch = message.content.match(steamIdRgx);
-    const steamURLMatch = message.content.match(steamUrlRgx);
-
-    // message does not contain relevant data
-    if (!(steamIdMatch || steamURLMatch)) return;
-
-    const entry = new ListEntry();
-
-    if (steamURLMatch) {
-      entry.steamID = await this.getSteamIdFromURL(steamURLMatch.groups.urlPart);
-    } else {
-      this.getSteamIdFromURL(`steamcommunity.com/profiles/${steamIdMatch.groups.steamID}/`);
-      entry.steamID = steamIdMatch.groups.steamID;
-    }
-
-    if (message.channel.type === 'dm') entry.addedBy = 'DM Message';
-    else entry.addedBy = 'Channel Message';
-
-    entry.member = await this.guild.members.fetch(message.author.id);
-
-    // check if member has whitelist role
-    const listID = this.getMemberListID(entry.member);
-    if (listID) {
-      entry.reason = `Discord Role`;
-      entry.listID = listID;
-    }
-
-    const rawQuerRes = await this.db.query(
-      `SELECT * FROM DiscordSteam_Users u 
-      LEFT JOIN (
-        SELECT * from AutoWL_Entries 
-      ) s ON s.discordID = u.discordID WHERE u.discordID = ${entry.member.id}`,
-      { type: Sequelize.QueryTypes.SELECT }
-    );
-    const lookup = rawQuerRes[0];
-
-    // user already exists
-    if (lookup) {
-      // user in list as entered
-      if (lookup.steamID === entry.steamID) return '👍';
-
-      // lookup has no entry, only update steamID
-      if (!lookup.AutoWL_Entry) {
-        await this.storeSteamID(entry.member, entry.steamID);
-        return '👍';
-      }
-
-      // previous SteamID has entry overwrite it.
-      const res = await this.overwriteAdmin(lookup, entry);
-      if (res) return '👍';
-      else return '❌';
-    }
-
-    if (!listID) return '❌';
-
-    const res = await this.addAdmin(entry);
-
-    if (res) {
-      this.verbose(
-        1,
-        `Added ${entry.steamID} to AdminList:${entry.listID} from ${entry.addedBy} for ${entry.reason}`
-      );
-      return '👍';
-    } else return '❌';
   }
 
   async pruneUsers() {
@@ -339,9 +227,16 @@ export default class DiscordAwnAutoWhitelist extends DiscordBasePlugin {
       const member = await this.guild.members.fetch(discordID);
       if (!member) continue;
       this.verbose(2, `Requesting SteamID from ${member.displayName}...`);
-      member.send(
-        `You have a pending reward but I need your steamID to give it to you, please send me your steam64ID`
-      );
+      if (this.options.channelID) {
+        const channel = await this.discord.channels.fetch(this.options.channelID);
+        channel.send(
+          `${member.user} You have a pending reward but I need your steamID to give it to you, please send me your steam64ID`
+        );
+      } else {
+        member.send(
+          `You have a pending reward but I need your steamID to give it to you, please send me your steam64ID`
+        );
+      }
     }
   }
 

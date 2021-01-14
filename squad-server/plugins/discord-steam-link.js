@@ -166,6 +166,10 @@ export default class DiscordSteamLink extends DiscordBasePlugin {
         });
       }
       this.verbose(1, `Added SteamID for ${message.author.tag}`);
+      if (this.options.verifySteamID && !user.verified)
+        message.reply(
+          `Thanks, you will be sent a "token" in game to confirm your account, send that token back to me.`
+        );
     }
   }
 
@@ -215,7 +219,10 @@ export default class DiscordSteamLink extends DiscordBasePlugin {
         });
       }
 
-      this.server.rcon.warn(user.steamID, `Verify your SteamID with "${userToken}"`);
+      this.server.rcon.warn(
+        user.steamID,
+        `Send "${userToken}" to @${this.options.discordClient.user.username} in discord to verify your account`
+      );
       this.verbose(1, `Sending token (${userToken}) to ${user.discordTag} (${user.steamID})`);
     }
   }

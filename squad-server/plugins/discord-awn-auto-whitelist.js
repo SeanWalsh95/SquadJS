@@ -3,7 +3,6 @@ import axios from 'axios';
 import DiscordBasePlugin from './discord-base-plugin.js';
 
 const { DataTypes } = Sequelize;
-const { HasOne } = Sequelize;
 
 const steamUrlRgx = /(?:https?:\/\/)?(?<urlPart>steamcommunity.com\/id\/.*?)(?=[\s\b]|$)/;
 const steamIdRgx = /(?<steamID>765\d{14})/;
@@ -72,7 +71,7 @@ export default class DiscordAwnAutoWhitelist extends DiscordBasePlugin {
 
     this.defineSqlModels();
 
-    this.db = this.options.database
+    this.db = this.options.database;
     this.discord = this.options.discordClient;
     this.awn = this.options.awnAPI;
 
@@ -140,7 +139,8 @@ export default class DiscordAwnAutoWhitelist extends DiscordBasePlugin {
   }
 
   async onMessage(message) {
-    return;
+    const alwaysTrue = true;
+    if (alwaysTrue) return;
     // dont respond to bots
     if (message.author.bot) return;
 
@@ -296,11 +296,7 @@ export default class DiscordAwnAutoWhitelist extends DiscordBasePlugin {
     }
 
     for (const member of membersToPrune) {
-      const res = await this.removeAdmin(
-        member.discordID,
-        member.awnListID,
-        member.awnAdminID
-      );
+      const res = await this.removeAdmin(member.discordID, member.awnListID, member.awnAdminID);
       if (res) this.verbose(1, `Pruned user ${member.discordTag}(${member.steamID})`);
       else this.verbose(1, `Failed to prune ${member.discordTag}(${member.steamID})`);
     }

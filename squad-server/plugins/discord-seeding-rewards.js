@@ -82,10 +82,6 @@ export default class DiscordSeedingRewards extends DiscordBasePlugin {
   async prepareToMount() {
     this.guild = await this.options.discordClient.guilds.fetch(this.options.serverID);
 
-    this.SeedLog = this.db.models.SeedLog_Players;
-    this.SteamUsers = this.options.database.models.DBLog_SteamUsers;
-    this.DiscordUsers = this.options.database.models.DiscordSteam_Users;
-
     await this.Redemptions.sync();
   }
 
@@ -100,16 +96,13 @@ export default class DiscordSeedingRewards extends DiscordBasePlugin {
   }
 
   async onMessage(message) {
-    if (message.author.bot || message.channel.id !== this.options.channelID) return;
+    if (
+      message.author.bot ||
+      message.channel.id !== this.options.channelID ||
+      !message.content.startsWith('!')
+    )
+      return;
 
-    const userRow = await this.DiscordUsers.findOne({
-      include: [
-        { model: this.SteamUsers, required: true },
-        { model: this.WhitelistEntries, required: false }
-      ],
-      where: { discordID: message.author.id }
-    });
-    /* Use in case Sequelize associations dont work
     const rawQuerRes = await this.db.query(
       `SELECT * FROM DiscordSteam_Users u 
       LEFT JOIN (
@@ -118,16 +111,15 @@ export default class DiscordSeedingRewards extends DiscordBasePlugin {
       { type: Sequelize.QueryTypes.SELECT }
     );
     const userRow = rawQuerRes[0];
-    */
 
     if (!userRow.steamID) {
       message.reply(
-        'Please post your Steam64Id so I can lookup your account activity and assign you rewards'
+        'Send me your Steam64Id so I can lookup your account activity and assign you rewards'
       );
       return;
     }
 
-    if (message.content.toLowerCase().includes('!redeem')) {
+    if (message.content.toLowerCase().startsWith('!redeem')) {
       if (this.options.noRewards) return;
 
       const existing = await this.Redemptions.findOne({ where: { discordID: message.author.id } });
@@ -136,14 +128,15 @@ export default class DiscordSeedingRewards extends DiscordBasePlugin {
         return;
       }
       if (userRow.points >= this.pointRewardRatio.points) {
-        this.verbose(1, `POINTS`);
         const rewardRole = await message.guild.roles.resolve(this.options.discordRewardRoleID);
         await message.member.roles.add(rewardRole);
-        this.SeedLog.decrement('points', {
-          by: this.pointRewardRatio.points,
-          where: { steamID: userRow.steamID }
-        });
-        this.Redemptions.upsert({
+        await this.db.query(
+          `UPDATE SeedLog_Players
+           SET points = points - ${this.pointRewardRatio.points} 
+           WHERE steamID = ${userRow.steamID}`,
+          { type: Sequelize.QueryTypes.UPDATE }
+        );
+        await this.Redemptions.upsert({
           discordID: message.author.id,
           roleID: this.options.discordRewardRoleID,
           expires: new Date(Date.now() + this.pointRewardRatio.whitelistTime)
@@ -158,7 +151,7 @@ export default class DiscordSeedingRewards extends DiscordBasePlugin {
       }
     }
 
-    if (message.content.toLowerCase().includes('!seeding')) {
+    if (message.content.toLowerCase().startsWith('!seeding')) {
       if (userRow.points >= this.pointRewardRatio.points) {
         message.reply(
           `you have seeded on our server for ${this.formatSeconds(

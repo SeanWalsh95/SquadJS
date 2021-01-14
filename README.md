@@ -473,7 +473,7 @@ Grafana (NOT YET WORKING WITH V2):
 <details>
           <summary>DiscordAwnAutoWhitelist</summary>
           <h2>DiscordAwnAutoWhitelist</h2>
-          <p>Automatically request steamIDs from users and add users with a given Discord role to an associated AWN AdminList<br><ul><li>👍 = SteamID registered with bot successfully</li><li>❌ = An Error occurred registering a the user</li></ul></p>
+          <p>Automatically add Discord users with a given role to an associated AWN AdminList<br>This plugin relys on the DiscordSteamLink plugin to source Steam64IDs from users</p>
           <h3>Options</h3>
           <ul><li><h4>discordClient (Required)</h4>
            <h6>Description</h6>
@@ -496,9 +496,9 @@ Grafana (NOT YET WORKING WITH V2):
            <h6>Default</h6>
            <pre><code></code></pre></li><h6>Example</h6>
            <pre><code>667741905228136459</code></pre>
-<li><h4>channelID (Required)</h4>
+<li><h4>channelID</h4>
            <h6>Description</h6>
-           <p>The ID of the channel to control awn from.</p>
+           <p>The channelID to notify members from.</p>
            <h6>Default</h6>
            <pre><code></code></pre></li><h6>Example</h6>
            <pre><code>667741905228136459</code></pre>
@@ -636,6 +636,41 @@ Grafana (NOT YET WORKING WITH V2):
         </details>
 
 <details>
+          <summary>DiscordSeedingRewards</summary>
+          <h2>DiscordSeedingRewards</h2>
+          <p>Redeems seeding "Points" for a discord Role</p>
+          <h3>Options</h3>
+          <ul><li><h4>discordClient (Required)</h4>
+           <h6>Description</h6>
+           <p>Discord connector name.</p>
+           <h6>Default</h6>
+           <pre><code>discord</code></pre></li>
+<li><h4>database (Required)</h4>
+           <h6>Description</h6>
+           <p>The Sequelize connector to log server information to.</p>
+           <h6>Default</h6>
+           <pre><code>mysql</code></pre></li>
+<li><h4>serverID (Required)</h4>
+           <h6>Description</h6>
+           <p>The discord serverID.</p>
+           <h6>Default</h6>
+           <pre><code></code></pre></li><h6>Example</h6>
+           <pre><code>667741905228136459</code></pre>
+<li><h4>channelID (Required)</h4>
+           <h6>Description</h6>
+           <p>The ID of the channel to control awn from.</p>
+           <h6>Default</h6>
+           <pre><code></code></pre></li><h6>Example</h6>
+           <pre><code>667741905228136459</code></pre>
+<li><h4>discordRewardRoleID</h4>
+           <h6>Description</h6>
+           <p>A Discord role to give to a user for points</p>
+           <h6>Default</h6>
+           <pre><code></code></pre></li><h6>Example</h6>
+           <pre><code>667741905228136459</code></pre></ul>
+        </details>
+
+<details>
           <summary>DiscordServerStatus</summary>
           <h2>DiscordServerStatus</h2>
           <p>The <code>DiscordServerStatus</code> plugin updates a message in Discord with current server information, e.g. player count.</p>
@@ -664,6 +699,34 @@ Grafana (NOT YET WORKING WITH V2):
 <li><h4>disableStatus</h4>
            <h6>Description</h6>
            <p>Disable the bot status.</p>
+           <h6>Default</h6>
+           <pre><code>false</code></pre></li></ul>
+        </details>
+
+<details>
+          <summary>DiscordSteamLink</summary>
+          <h2>DiscordSteamLink</h2>
+          <p>Associates a users Discord Profile with their SteamID with the option to verify in game</p>
+          <h3>Options</h3>
+          <ul><li><h4>discordClient (Required)</h4>
+           <h6>Description</h6>
+           <p>Discord connector name.</p>
+           <h6>Default</h6>
+           <pre><code>discord</code></pre></li>
+<li><h4>database (Required)</h4>
+           <h6>Description</h6>
+           <p>The Sequelize connector to log server information to.</p>
+           <h6>Default</h6>
+           <pre><code>mysql</code></pre></li>
+<li><h4>channelID (Required)</h4>
+           <h6>Description</h6>
+           <p>The ID of the channel to control awn from.</p>
+           <h6>Default</h6>
+           <pre><code></code></pre></li><h6>Example</h6>
+           <pre><code>667741905228136459</code></pre>
+<li><h4>verifySteamID</h4>
+           <h6>Description</h6>
+           <p>If this plugin will verify a users Steam64ID when it sees them online</p>
            <h6>Default</h6>
            <pre><code>false</code></pre></li></ul>
         </details>

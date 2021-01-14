@@ -174,12 +174,29 @@
       "color": 16761867
     },
     {
+      "plugin": "DiscordSeedingRewards",
+      "enabled": false,
+      "discordClient": "discord",
+      "database": "mysql",
+      "serverID": "",
+      "channelID": "",
+      "discordRewardRoleID": ""
+    },
+    {
       "plugin": "DiscordServerStatus",
       "enabled": false,
       "discordClient": "discord",
       "messageIDs": [],
       "updateInterval": 60000,
       "disableStatus": false
+    },
+    {
+      "plugin": "DiscordSteamLink",
+      "enabled": false,
+      "discordClient": "discord",
+      "database": "mysql",
+      "channelID": "",
+      "verifySteamID": false
     },
     {
       "plugin": "DiscordSubsystemRestarter",

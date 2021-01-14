@@ -29,13 +29,14 @@ export default class DiscordSteamLink extends DiscordBasePlugin {
       },
       channelID: {
         required: true,
-        description: 'The ID of the channel to control awn from.',
+        description: 'The channelID that users are directed to post their SteamIDs to becides DMs.',
         default: '',
         example: '667741905228136459'
       },
       verifySteamID: {
         required: false,
-        description: 'If this plugin will verify a users Steam64ID when it sees them online',
+        description:
+          'If this plugin will verify a users Steam64ID when it sees them online in game',
         default: false
       }
     };
@@ -91,7 +92,6 @@ export default class DiscordSteamLink extends DiscordBasePlugin {
 
   async prepareToMount() {
     this.SteamUsers = this.options.database.models.DBLog_SteamUsers;
-
     await this.DiscordUsers.sync();
   }
 
@@ -106,7 +106,6 @@ export default class DiscordSteamLink extends DiscordBasePlugin {
 
   async unmount() {
     this.options.discordClient.removeEventListener('message', this.onMessage);
-
     if (this.options.verifySteamID) clearInterval(this.sendUserTokenInterval);
   }
 

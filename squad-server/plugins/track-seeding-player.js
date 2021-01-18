@@ -89,7 +89,7 @@ export default class TrackSeedingPlayer extends BasePlugin {
     ) {
       const currentPlayers = this.server.players.map((player) => player.steamID);
       const intervalTimeSec = parseInt(this.options.interval / 1000);
-      await this.SeedLog.increment('points', {
+      await this.SeedLog.increment('totalSeedTime', {
         by: intervalTimeSec,
         where: { steamID: currentPlayers }
       });

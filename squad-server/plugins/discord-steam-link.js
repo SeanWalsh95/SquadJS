@@ -123,12 +123,14 @@ export default class DiscordSteamLink extends DiscordBasePlugin {
         [Op.and]: [{ verified: false }, { discordID: message.author.id }]
       });
       if (user && message.content.includes(user.token)) {
-        await this.DiscordUsers.upsert({
-          discordID: message.author.id,
-          steamID: user.steamID,
-          verified: true,
-          token: ''
-        });
+        await this.DiscordUsers.update(
+          {
+            verified: true,
+            token: ''
+          },
+          { where: { discordID: message.author.id } }
+        );
+        message.react('👍');
         this.verbose(1, `Verified ${message.author.tag} from token`);
       }
     } else {
@@ -165,6 +167,7 @@ export default class DiscordSteamLink extends DiscordBasePlugin {
         });
       }
       this.verbose(1, `Added SteamID for ${message.author.tag}`);
+      message.react('👍');
       if (this.options.verifySteamID && !user.verified)
         message.reply(
           `Thanks, you will be sent a "token" in game to confirm your account, send that token back to me.`
@@ -175,7 +178,7 @@ export default class DiscordSteamLink extends DiscordBasePlugin {
   async getSteamIdFromURL(communityURL) {
     const steamData = scrapeSteamProfile(communityURL);
     if (steamData) {
-      await this.db.query(
+      await this.options.database.query(
         `INSERT DBLog_SteamUsers (steamID, lastName)
          VALUES (${steamData.steamID},${steamData.name})
          ON DUPLICATE KEY UPDATE

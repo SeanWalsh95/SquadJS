@@ -121,10 +121,10 @@ export default class DiscordAwnAutoWhitelist extends DiscordBasePlugin {
     this.usersUpdateInterval = setInterval(async () => {
       await this.pruneUsers();
       await this.updateEntrysFromRoles();
-    }, 1000 * 60 * 1 /* 15 */);
+    }, 1000 * 60 * 15);
     this.requestMissingSteamIDsInterval = setInterval(async () => {
       this.requestMissingSteamIDs();
-    }, 1000 * 60 * 0.5 /* 30 */);
+    }, 1000 * 60 * 30);
   }
 
   async unmount() {

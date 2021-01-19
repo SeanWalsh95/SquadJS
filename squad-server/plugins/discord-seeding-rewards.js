@@ -87,7 +87,10 @@ export default class DiscordSeedingRewards extends DiscordBasePlugin {
 
   async mount() {
     this.options.discordClient.on('message', this.onMessage);
-    this.clearExpiredRewardsInterval = setInterval(this.clearExpiredRewards, 1000 * 60 * 15);
+    this.clearExpiredRewardsInterval = setInterval(
+      this.clearExpiredRewards,
+      1000 * 60 * 0.25 /* 15 */
+    );
   }
 
   async unmount() {
@@ -106,7 +109,7 @@ export default class DiscordSeedingRewards extends DiscordBasePlugin {
     const rawQuerRes = await this.db.query(
       `SELECT * FROM DiscordSteam_Users u 
       LEFT JOIN (
-        SELECT * from SeedLog_Players 
+        SELECT * from SeedLog_Points 
       ) s ON s.steamID = u.steamID WHERE u.discordID = ${message.author.id}`,
       { type: Sequelize.QueryTypes.SELECT }
     );
@@ -131,7 +134,7 @@ export default class DiscordSeedingRewards extends DiscordBasePlugin {
         const rewardRole = await message.guild.roles.resolve(this.options.discordRewardRoleID);
         await message.member.roles.add(rewardRole);
         await this.db.query(
-          `UPDATE SeedLog_Players
+          `UPDATE SeedLog_Points
            SET points = points - ${this.pointRewardRatio.points} 
            WHERE steamID = ${userRow.steamID}`,
           { type: Sequelize.QueryTypes.UPDATE }
@@ -143,7 +146,7 @@ export default class DiscordSeedingRewards extends DiscordBasePlugin {
         });
         this.verbose(
           1,
-          `${message.author.tag} redeemed ${rewardRole.name} for ${this.pointRewardRatio.points}`
+          `${message.author.tag} redeemed "${rewardRole.name}" for ${this.pointRewardRatio.points}`
         );
         message.reply(`congratulations, your week of whitlisting starts now`);
       } else {
@@ -156,7 +159,7 @@ export default class DiscordSeedingRewards extends DiscordBasePlugin {
         message.reply(
           `you have seeded on our server for ${this.formatSeconds(
             userRow.totalSeedTime
-          )}\n**you are eligible for whitelist from seeding** use !redeem to get a week of whitelist`
+          )}\n**you are eligible for whitelist from seeding** use \`!redeem\` to get a week of whitelist`
         );
       } else {
         message.reply(
@@ -177,7 +180,7 @@ export default class DiscordSeedingRewards extends DiscordBasePlugin {
       this.verbose(3, `removed role from ${member.tag}`);
       this.Redemptions.destroy({ where: { discordID: e.discordID } });
     }
-    this.verbose(1, `${expired.length} rewards removed...`);
+    if (expired.length > 0) this.verbose(1, `${expired.length} rewards removed...`);
   }
 
   formatSeconds(timeInSeconds) {

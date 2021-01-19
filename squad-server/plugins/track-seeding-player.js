@@ -50,7 +50,7 @@ export default class TrackSeedingPlayer extends BasePlugin {
   }
 
   defineSqlModels() {
-    this.SeedLog = this.options.database.define(`SeedLog_Points`, {
+    this.SeedPoints = this.options.database.define(`SeedLog_Points`, {
       steamID: {
         type: DataTypes.STRING,
         primaryKey: true
@@ -62,12 +62,21 @@ export default class TrackSeedingPlayer extends BasePlugin {
         type: DataTypes.INTEGER
       }
     });
+    this.SeedPlayers = this.options.database.define(`SeedLog_Points`, {
+      steamID: {
+        type: DataTypes.STRING,
+        primaryKey: true
+      },
+      timestamp: {
+        type: DataTypes.DATE
+      }
+    });
   }
 
   async prepareToMount() {
     this.SteamUsers = this.options.database.models.DBLog_SteamUsers;
 
-    await this.SeedLog.sync();
+    await this.SeedPoints.sync();
   }
 
   async mount() {
@@ -85,15 +94,15 @@ export default class TrackSeedingPlayer extends BasePlugin {
     ) {
       const currentPlayers = this.server.players.map((player) => player.steamID);
       const intervalTimeSec = parseInt(this.options.interval / 1000);
-      await this.SeedLog.increment('totalSeedTime', {
+      await this.SeedPoints.increment('totalSeedTime', {
         by: intervalTimeSec,
         where: { steamID: currentPlayers }
       });
-      await this.SeedLog.increment('points', {
+      await this.SeedPoints.increment('points', {
         by: intervalTimeSec,
         where: { steamID: currentPlayers }
       });
-      await this.SeedLog.findOrCreate({
+      await this.SeedPoints.findOrCreate({
         where: { steamID: currentPlayers },
         defaults: {
           totalSeedTime: 0,

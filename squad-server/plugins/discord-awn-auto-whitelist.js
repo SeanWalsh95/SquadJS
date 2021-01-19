@@ -81,8 +81,6 @@ export default class DiscordAwnAutoWhitelist extends DiscordBasePlugin {
     this.missingSteamIDs = {};
     this.tokenLength = 6;
 
-    this.onMessage = this.onMessage.bind(this);
-
     this.requestMissingSteamIDs = this.requestMissingSteamIDs.bind(this);
   }
 

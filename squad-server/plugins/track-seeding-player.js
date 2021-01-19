@@ -62,7 +62,7 @@ export default class TrackSeedingPlayer extends BasePlugin {
         type: DataTypes.INTEGER
       }
     });
-    this.SeedPlayers = this.options.database.define(`SeedLog_Points`, {
+    this.SeedPlayers = this.options.database.define(`SeedLog_PlayerLog`, {
       steamID: {
         type: DataTypes.STRING,
         primaryKey: true

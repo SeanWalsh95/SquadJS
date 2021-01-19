@@ -46,6 +46,7 @@ export default class DiscordSeedingRewards extends DiscordBasePlugin {
     super(server, options, connectors);
 
     this.db = this.options.database;
+    this.discord = this.options.discordClient;
 
     // rato of seed points days of whitelist
     this.pointRewardRatio = {
@@ -67,6 +68,9 @@ export default class DiscordSeedingRewards extends DiscordBasePlugin {
         discordID: {
           type: DataTypes.STRING,
           primaryKey: true
+        },
+        serverID: {
+          type: DataTypes.STRING
         },
         roleID: {
           type: DataTypes.STRING
@@ -141,6 +145,7 @@ export default class DiscordSeedingRewards extends DiscordBasePlugin {
         );
         await this.Redemptions.upsert({
           discordID: message.author.id,
+          serverID: this.options.serverID,
           roleID: this.options.discordRewardRoleID,
           expires: new Date(Date.now() + this.pointRewardRatio.whitelistTime)
         });
@@ -175,8 +180,9 @@ export default class DiscordSeedingRewards extends DiscordBasePlugin {
       where: { expires: { [Sequelize.Op.lte]: Date.now() } }
     });
     for (const e of expired) {
-      const member = await this.guild.members.fetch(e.discordID);
-      member.roles.remove(await this.guild.roles.resolve(e.roleID));
+      const guild = await this.discord.guilds.fetch(e.serverID);
+      const member = await guild.members.fetch(e.discordID);
+      member.roles.remove(await guild.roles.resolve(e.roleID));
       this.verbose(3, `removed role from ${member.tag}`);
       this.Redemptions.destroy({ where: { discordID: e.discordID } });
     }

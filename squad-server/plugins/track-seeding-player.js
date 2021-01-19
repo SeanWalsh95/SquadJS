@@ -50,22 +50,18 @@ export default class TrackSeedingPlayer extends BasePlugin {
   }
 
   defineSqlModels() {
-    this.SeedLog = this.options.database.define(
-      `SeedLog_Players`,
-      {
-        steamID: {
-          type: DataTypes.STRING,
-          primaryKey: true
-        },
-        totalSeedTime: {
-          type: DataTypes.INTEGER
-        },
-        points: {
-          type: DataTypes.INTEGER
-        }
+    this.SeedLog = this.options.database.define(`SeedLog_Points`, {
+      steamID: {
+        type: DataTypes.STRING,
+        primaryKey: true
       },
-      { timestamps: false }
-    );
+      totalSeedTime: {
+        type: DataTypes.INTEGER
+      },
+      points: {
+        type: DataTypes.INTEGER
+      }
+    });
   }
 
   async prepareToMount() {

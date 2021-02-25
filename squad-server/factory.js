@@ -9,7 +9,7 @@ import AwnAPI from './utils/awn-api.js';
 import Logger from 'core/logger';
 
 import SquadServer from './index.js';
-import plugins from './plugins/index.js';
+import Plugins from './plugins/index.js';
 
 const { Sequelize } = sequelize;
 
@@ -17,6 +17,8 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 export default class SquadServerFactory {
   static async buildFromConfig(config) {
+    const plugins = await Plugins.getPlugins();
+
     for (const plugin of Object.keys(plugins)) {
       Logger.setColor(plugin, 'magentaBright');
     }
@@ -33,9 +35,6 @@ export default class SquadServerFactory {
     // create SquadServer
     Logger.verbose('SquadServerFactory', 1, 'Creating SquadServer...');
     const server = new SquadServer(config.server);
-
-    // pull layers read to use to create layer filter connectors
-    await server.squadLayers.pull();
 
     // initialise connectors
     Logger.verbose('SquadServerFactory', 1, 'Preparing connectors...');
@@ -103,13 +102,6 @@ export default class SquadServerFactory {
   static async createConnector(server, type, connectorName, connectorConfig) {
     Logger.verbose('SquadServerFactory', 1, `Starting ${type} connector ${connectorName}...`);
 
-    if (type === 'squadlayerpool') {
-      return server.squadLayers[connectorConfig.type](
-        connectorConfig.filter,
-        connectorConfig.activeLayerFilter
-      );
-    }
-
     if (type === 'discord') {
       const connector = new Discord.Client();
       await connector.login(connectorConfig);
@@ -169,7 +161,9 @@ export default class SquadServerFactory {
     return SquadServerFactory.buildFromConfigString(SquadServerFactory.readConfigFile(configPath));
   }
 
-  static buildConfig() {
+  static async buildConfig() {
+    const plugins = await Plugins.getPlugins();
+
     const templatePath = path.resolve(__dirname, './templates/config-template.json');
     const templateString = fs.readFileSync(templatePath, 'utf8');
     const template = SquadServerFactory.parseConfig(templateString);
@@ -192,13 +186,17 @@ export default class SquadServerFactory {
     return template;
   }
 
-  static buildConfigFile() {
+  static async buildConfigFile() {
     const configPath = path.resolve(__dirname, '../config.json');
-    const config = JSON.stringify(SquadServerFactory.buildConfig(), null, 2);
-    fs.writeFileSync(configPath, config);
+    const config = await SquadServerFactory.buildConfig();
+
+    const configString = JSON.stringify(config, null, 2);
+    fs.writeFileSync(configPath, configString);
   }
 
-  static buildReadmeFile() {
+  static async buildReadmeFile() {
+    const plugins = await Plugins.getPlugins();
+
     const pluginKeys = Object.keys(plugins).sort((a, b) =>
       a.name < b.name ? -1 : a.name > b.name ? 1 : 0
     );

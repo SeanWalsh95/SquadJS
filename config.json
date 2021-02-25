@@ -40,6 +40,16 @@
       "color": 16761867
     },
     {
+      "plugin": "DiscordAwnAutoWhitelist",
+      "enabled": false,
+      "discordClient": "discord",
+      "awnAPI": "awnAPI",
+      "database": "mysql",
+      "serverID": "",
+      "channelID": "",
+      "whitelistRoles": {}
+    },
+    {
       "plugin": "DiscordAdminCamLogs",
       "enabled": false,
       "discordClient": "discord",
@@ -52,16 +62,6 @@
       "discordClient": "discord",
       "channelID": "",
       "events": []
-    },
-    {
-      "plugin": "DiscordAwnAutoWhitelist",
-      "enabled": false,
-      "discordClient": "discord",
-      "awnAPI": "awnAPI",
-      "database": "mysql",
-      "serverID": "",
-      "channelID": "",
-      "whitelistRoles": {}
     },
     {
       "plugin": "DiscordChat",
@@ -79,15 +79,6 @@
       "enabled": false,
       "broadcasts": [],
       "interval": 300000
-    },
-    {
-      "plugin": "DiscordSeedingRewards",
-      "enabled": false,
-      "discordClient": "discord",
-      "database": "mysql",
-      "serverID": "",
-      "channelID": "",
-      "discordRewardRoleID": ""
     },
     {
       "plugin": "DiscordServerStatus",
@@ -134,6 +125,14 @@
       "color": 16761867
     },
     {
+      "plugin": "TrackSeedingPlayer",
+      "enabled": false,
+      "database": "mysql",
+      "interval": 150000,
+      "minSeedingThreshold": 3,
+      "maxSeedingThreshold": 40
+    },
+    {
       "plugin": "SeedingMode",
       "enabled": true,
       "interval": 150000,
@@ -142,6 +141,14 @@
       "liveEnabled": true,
       "liveThreshold": 52,
       "liveMessage": "Live!"
+    },
+    {
+      "plugin": "DiscordSteamLink",
+      "enabled": false,
+      "discordClient": "discord",
+      "database": "mysql",
+      "channelID": "",
+      "verifySteamID": false
     },
     {
       "plugin": "SCBLInfo",
@@ -162,6 +169,15 @@
       "channelID": "",
       "permissions": {},
       "prependAdminNameInBroadcast": false
+    },
+    {
+      "plugin": "DiscordSeedingRewards",
+      "enabled": false,
+      "discordClient": "discord",
+      "database": "mysql",
+      "serverID": "",
+      "channelID": "",
+      "discordRewardRoleID": ""
     },
     {
       "plugin": "DiscordTeamkill",

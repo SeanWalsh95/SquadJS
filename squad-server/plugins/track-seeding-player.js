@@ -58,10 +58,14 @@ export default class TrackSeedingPlayer extends BasePlugin {
         primaryKey: true
       },
       totalSeedTime: {
-        type: DataTypes.INTEGER
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        defaultValue: 0
       },
       points: {
-        type: DataTypes.INTEGER
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        defaultValue: 0
       }
     });
     this.SeedPlayers = this.options.database.define(`SeedLog_PlayerLog`, {
@@ -96,22 +100,28 @@ export default class TrackSeedingPlayer extends BasePlugin {
     ) {
       this.verbose(1, `Logging Current Players as Seeding...`);
       const currentPlayers = this.server.players.map((player) => player.steamID);
-      const intervalTimeSec = this.options.interval;
-      await this.SeedPoints.increment('totalSeedTime', {
+      const intervalTimeSec = parseInt(this.options.interval);
+      const totalIncResp = await this.SeedPoints.increment('totalSeedTime', {
         by: intervalTimeSec,
         where: { steamID: currentPlayers }
       });
-      await this.SeedPoints.increment('points', {
+      const pointIncResp = await this.SeedPoints.increment('points', {
         by: intervalTimeSec,
         where: { steamID: currentPlayers }
       });
-      await this.SeedPoints.findOrCreate({
-        where: { steamID: currentPlayers },
-        defaults: {
-          totalSeedTime: 0,
-          points: 0
+
+      const blkCreateResp = await this.SeedPoints.bulkCreate(
+        this.server.players.map((player) => {
+          return { steamID: player.steamID };
+        }),
+        {
+          fields: ['steamID'],
+          ignoreDuplicates: true
         }
-      });
+      );
+      this.verbose(4, `TotalInc - Rows affected:${totalIncResp}}`);
+      this.verbose(4, `pointInc - Rows affected:${pointIncResp}}`);
+      this.verbose(4, `BulkCreate Response: ${JSON.stringify(blkCreateResp)}`);
     }
   }
 }

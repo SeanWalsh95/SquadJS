@@ -92,6 +92,7 @@ export default class TrackSeedingPlayer extends BasePlugin {
       this.server.a2sPlayerCount > this.options.minSeedingThreshold &&
       this.server.a2sPlayerCount < this.options.maxSeedingThreshold
     ) {
+      this.verbose(1, `Logging Current Players as Seeding...`)
       const currentPlayers = this.server.players.map((player) => player.steamID);
       const intervalTimeSec = parseInt(this.options.interval / 1000);
       await this.SeedPoints.increment('totalSeedTime', {

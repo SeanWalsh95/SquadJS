@@ -25,8 +25,8 @@ export default class TrackSeedingPlayer extends BasePlugin {
       },
       interval: {
         required: false,
-        description: 'Frequency of checking for players.',
-        default: 1000 * 60 * 2.5
+        description: 'Frequency of checking for players, in seconds.',
+        default: 60 * 2.5
       },
       minSeedingThreshold: {
         required: false,
@@ -43,6 +43,8 @@ export default class TrackSeedingPlayer extends BasePlugin {
 
   constructor(server, options, connectors) {
     super(server, options, connectors);
+
+    this.intervalMS = this.options.interval * 1000;
 
     this.defineSqlModels();
 
@@ -80,7 +82,7 @@ export default class TrackSeedingPlayer extends BasePlugin {
   }
 
   async mount() {
-    this.logPlayersInterval = setInterval(this.logPlayers, this.options.interval);
+    this.logPlayersInterval = setInterval(this.logPlayers, this.intervalMS);
   }
 
   async unmount() {
@@ -94,7 +96,7 @@ export default class TrackSeedingPlayer extends BasePlugin {
     ) {
       this.verbose(1, `Logging Current Players as Seeding...`);
       const currentPlayers = this.server.players.map((player) => player.steamID);
-      const intervalTimeSec = parseInt(this.options.interval / 1000);
+      const intervalTimeSec = this.options.interval;
       await this.SeedPoints.increment('totalSeedTime', {
         by: intervalTimeSec,
         where: { steamID: currentPlayers }

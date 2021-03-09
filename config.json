@@ -229,7 +229,7 @@
       "plugin": "TrackSeedingPlayer",
       "enabled": false,
       "database": "mysql",
-      "interval": 150000,
+      "interval": 150,
       "minSeedingThreshold": 3,
       "maxSeedingThreshold": 40
     }

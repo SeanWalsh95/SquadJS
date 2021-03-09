@@ -965,9 +965,9 @@ Grafana (NOT YET WORKING WITH V2):
            <pre><code>mysql</code></pre></li>
 <li><h4>interval</h4>
            <h6>Description</h6>
-           <p>Frequency of checking for players.</p>
+           <p>Frequency of checking for players, in seconds.</p>
            <h6>Default</h6>
-           <pre><code>150000</code></pre></li>
+           <pre><code>150</code></pre></li>
 <li><h4>minSeedingThreshold</h4>
            <h6>Description</h6>
            <p>the minimum number of players in order to count as "seeding".</p>

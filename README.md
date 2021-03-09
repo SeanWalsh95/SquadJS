@@ -474,6 +474,49 @@ Grafana (NOT YET WORKING WITH V2):
         </details>
 
 <details>
+          <summary>DiscordAwnAutoWhitelist</summary>
+          <h2>DiscordAwnAutoWhitelist</h2>
+          <p>Automatically add Discord users with a given role to an associated AWN AdminList<br>This plugin relys on the DiscordSteamLink plugin to source Steam64IDs from users</p>
+          <h3>Options</h3>
+          <ul><li><h4>discordClient (Required)</h4>
+           <h6>Description</h6>
+           <p>Discord connector name.</p>
+           <h6>Default</h6>
+           <pre><code>discord</code></pre></li>
+<li><h4>awnAPI (Required)</h4>
+           <h6>Description</h6>
+           <p>Discord connector name.</p>
+           <h6>Default</h6>
+           <pre><code>awnAPI</code></pre></li>
+<li><h4>database (Required)</h4>
+           <h6>Description</h6>
+           <p>The Sequelize connector to log server information to.</p>
+           <h6>Default</h6>
+           <pre><code>mysql</code></pre></li>
+<li><h4>serverID (Required)</h4>
+           <h6>Description</h6>
+           <p>The discord serverID.</p>
+           <h6>Default</h6>
+           <pre><code></code></pre></li><h6>Example</h6>
+           <pre><code>667741905228136459</code></pre>
+<li><h4>channelID</h4>
+           <h6>Description</h6>
+           <p>The channelID to notify members from.</p>
+           <h6>Default</h6>
+           <pre><code></code></pre></li><h6>Example</h6>
+           <pre><code>667741905228136459</code></pre>
+<li><h4>whitelistRoles (Required)</h4>
+           <h6>Description</h6>
+           <p>Discord Role ID and the AWN Admin List ID Pairs</p>
+           <h6>Default</h6>
+           <pre><code>{}</code></pre></li><h6>Example</h6>
+           <pre><code>{
+  "667741905228136459": "1234",
+  "667741905228136460": "1452"
+}</code></pre></ul>
+        </details>
+
+<details>
           <summary>DiscordChat</summary>
           <h2>DiscordChat</h2>
           <p>The <code>DiscordChat</code> plugin will log in-game chat to a Discord channel.</p>
@@ -641,6 +684,41 @@ Grafana (NOT YET WORKING WITH V2):
         </details>
 
 <details>
+          <summary>DiscordSeedingRewards</summary>
+          <h2>DiscordSeedingRewards</h2>
+          <p>Redeems seeding "Points" for a discord Role</p>
+          <h3>Options</h3>
+          <ul><li><h4>discordClient (Required)</h4>
+           <h6>Description</h6>
+           <p>Discord connector name.</p>
+           <h6>Default</h6>
+           <pre><code>discord</code></pre></li>
+<li><h4>database (Required)</h4>
+           <h6>Description</h6>
+           <p>The Sequelize connector to log server information to.</p>
+           <h6>Default</h6>
+           <pre><code>mysql</code></pre></li>
+<li><h4>serverID (Required)</h4>
+           <h6>Description</h6>
+           <p>The discord serverID.</p>
+           <h6>Default</h6>
+           <pre><code></code></pre></li><h6>Example</h6>
+           <pre><code>667741905228136459</code></pre>
+<li><h4>channelID (Required)</h4>
+           <h6>Description</h6>
+           <p>The ID of the channel to control awn from.</p>
+           <h6>Default</h6>
+           <pre><code></code></pre></li><h6>Example</h6>
+           <pre><code>667741905228136459</code></pre>
+<li><h4>discordRewardRoleID</h4>
+           <h6>Description</h6>
+           <p>A Discord role to give to a user for points</p>
+           <h6>Default</h6>
+           <pre><code></code></pre></li><h6>Example</h6>
+           <pre><code>667741905228136459</code></pre></ul>
+        </details>
+
+<details>
           <summary>DiscordServerStatus</summary>
           <h2>DiscordServerStatus</h2>
           <p>The <code>DiscordServerStatus</code> plugin updates a message in Discord with current server information, e.g. player count.</p>
@@ -669,6 +747,34 @@ Grafana (NOT YET WORKING WITH V2):
 <li><h4>disableStatus</h4>
            <h6>Description</h6>
            <p>Disable the bot status.</p>
+           <h6>Default</h6>
+           <pre><code>false</code></pre></li></ul>
+        </details>
+
+<details>
+          <summary>DiscordSteamLink</summary>
+          <h2>DiscordSteamLink</h2>
+          <p>Associates a users Discord Profile with their SteamID with the option to verify in game</p>
+          <h3>Options</h3>
+          <ul><li><h4>discordClient (Required)</h4>
+           <h6>Description</h6>
+           <p>Discord connector name.</p>
+           <h6>Default</h6>
+           <pre><code>discord</code></pre></li>
+<li><h4>database (Required)</h4>
+           <h6>Description</h6>
+           <p>The Sequelize connector to log server information to.</p>
+           <h6>Default</h6>
+           <pre><code>mysql</code></pre></li>
+<li><h4>channelID (Required)</h4>
+           <h6>Description</h6>
+           <p>The channelID that users are directed to post their SteamIDs to becides DMs.</p>
+           <h6>Default</h6>
+           <pre><code></code></pre></li><h6>Example</h6>
+           <pre><code>667741905228136459</code></pre>
+<li><h4>verifySteamID</h4>
+           <h6>Description</h6>
+           <p>If this plugin will verify a users Steam64ID when it sees them online in game</p>
            <h6>Default</h6>
            <pre><code>false</code></pre></li></ul>
         </details>
@@ -844,6 +950,34 @@ Grafana (NOT YET WORKING WITH V2):
            <p>The command used to randomize the teams.</p>
            <h6>Default</h6>
            <pre><code>randomize</code></pre></li></ul>
+        </details>
+
+<details>
+          <summary>TrackSeedingPlayer</summary>
+          <h2>TrackSeedingPlayer</h2>
+          <p>Tracks players that are seeding and rewards them with "points" which can be used across other plugins for rewards
+"points" represent the number of seconds a player has seeded for</p>
+          <h3>Options</h3>
+          <ul><li><h4>database (Required)</h4>
+           <h6>Description</h6>
+           <p>The Sequelize connector to log server information to.</p>
+           <h6>Default</h6>
+           <pre><code>mysql</code></pre></li>
+<li><h4>interval</h4>
+           <h6>Description</h6>
+           <p>Frequency of checking for players.</p>
+           <h6>Default</h6>
+           <pre><code>150000</code></pre></li>
+<li><h4>minSeedingThreshold</h4>
+           <h6>Description</h6>
+           <p>the minimum number of players in order to count as "seeding".</p>
+           <h6>Default</h6>
+           <pre><code>3</code></pre></li>
+<li><h4>maxSeedingThreshold</h4>
+           <h6>Description</h6>
+           <p>the miximum number of players in order to count as "seeding".</p>
+           <h6>Default</h6>
+           <pre><code>40</code></pre></li></ul>
         </details>
 
 <br>

@@ -94,6 +94,16 @@
       "color": 16761867
     },
     {
+      "plugin": "DiscordAwnAutoWhitelist",
+      "enabled": false,
+      "discordClient": "discord",
+      "awnAPI": "awnAPI",
+      "database": "mysql",
+      "serverID": "",
+      "channelID": "",
+      "whitelistRoles": {}
+    },
+    {
       "plugin": "DiscordChat",
       "enabled": true,
       "discordClient": "discord",
@@ -141,12 +151,29 @@
       "color": 16761867
     },
     {
+      "plugin": "DiscordSeedingRewards",
+      "enabled": false,
+      "discordClient": "discord",
+      "database": "mysql",
+      "serverID": "",
+      "channelID": "",
+      "discordRewardRoleID": ""
+    },
+    {
       "plugin": "DiscordServerStatus",
       "enabled": false,
       "discordClient": "discord",
       "messageIDs": [],
       "updateInterval": 60000,
       "disableStatus": false
+    },
+    {
+      "plugin": "DiscordSteamLink",
+      "enabled": false,
+      "discordClient": "discord",
+      "database": "mysql",
+      "channelID": "",
+      "verifySteamID": false
     },
     {
       "plugin": "DiscordSubsystemRestarter",
@@ -197,6 +224,14 @@
       "plugin": "TeamRandomizer",
       "enabled": true,
       "command": "randomize"
+    },
+    {
+      "plugin": "TrackSeedingPlayer",
+      "enabled": false,
+      "database": "mysql",
+      "interval": 150000,
+      "minSeedingThreshold": 3,
+      "maxSeedingThreshold": 40
     }
   ],
   "logger": {

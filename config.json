@@ -22,6 +22,13 @@
   },
   "connectors": {
     "discord": "Discord Login Token",
+    "awnAPI": {
+      "orgID": "YourOrgID",
+      "creds": {
+        "username": "AwnUsername",
+        "password": "AwnPassword"
+      }
+    },
     "mysql": {
       "host": "host",
       "port": 3306,
@@ -29,7 +36,8 @@
       "password": "password",
       "database": "squadjs",
       "dialect": "mysql"
-    }
+    },
+    "sqlite": "sqlite:database.sqlite"
   },
   "plugins": [
     {
@@ -91,7 +99,9 @@
       "command": "admin",
       "pingGroups": [],
       "pingDelay": 60000,
-      "color": 16761867
+      "color": 16761867,
+      "warnInGameAdmins": false,
+      "showInGameAdmins": true
     },
     {
       "plugin": "DiscordAwnAutoWhitelist",
@@ -161,11 +171,13 @@
     },
     {
       "plugin": "DiscordServerStatus",
-      "enabled": false,
+      "enabled": true,
       "discordClient": "discord",
-      "messageIDs": [],
+      "messageStore": "sqlite",
+      "command": "!status",
+      "disableSubscriptions": false,
       "updateInterval": 60000,
-      "disableStatus": false
+      "setBotStatus": true
     },
     {
       "plugin": "DiscordSteamLink",

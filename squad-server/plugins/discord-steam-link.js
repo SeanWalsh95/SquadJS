@@ -180,9 +180,8 @@ export default class DiscordSteamLink extends DiscordBasePlugin {
     if (steamData) {
       await this.options.database.query(
         `INSERT DBLog_SteamUsers (steamID, lastName)
-         VALUES (${steamData.steamID},${steamData.name})
-         ON DUPLICATE KEY UPDATE
-         lastName = ${steamData.name}`,
+         VALUES (${steamData.steamID},"${steamData.name}")
+         ON DUPLICATE KEY UPDATE steamID=steamID`,
         { type: Sequelize.QueryTypes.INSERT }
       );
       return steamData.steamID;

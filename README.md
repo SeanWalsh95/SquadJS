@@ -790,7 +790,12 @@ Grafana (NOT YET WORKING WITH V2):
            <h6>Description</h6>
            <p>If this plugin will verify a users Steam64ID when it sees them online in game</p>
            <h6>Default</h6>
-           <pre><code>false</code></pre></li></ul>
+           <pre><code>false</code></pre></li>
+<li><h4>adminRoleID</h4>
+           <h6>Description</h6>
+           <p>ID of admin role to use commands to get info about IDs</p>
+           <h6>Default</h6>
+           <pre><code>null</code></pre></li></ul>
         </details>
 
 <details>

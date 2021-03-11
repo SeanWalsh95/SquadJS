@@ -389,6 +389,7 @@ export default class DBLog extends BasePlugin {
       onDelete: 'CASCADE'
     });
 
+    this.playerConnectedRCON = this.playerConnectedRCON.bind(this);
     this.onTickRate = this.onTickRate.bind(this);
     this.onUpdatedA2SInformation = this.onUpdatedA2SInformation.bind(this);
     this.onNewGame = this.onNewGame.bind(this);

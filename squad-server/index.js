@@ -326,12 +326,16 @@ export default class SquadServer extends EventEmitter {
       }
 
       const players = [];
-      for (const player of await this.rcon.getListPlayers())
+      for (const player of await this.rcon.getListPlayers()) {
+        if (!(player.steamID in oldPlayerInfo)) {
+          this.emit('PLAYER_CONNECTED_RCON', player);
+        }
         players.push({
           ...oldPlayerInfo[player.steamID],
           ...player,
           squad: await this.getSquadByID(player.teamID, player.squadID)
         });
+      }
 
       this.players = players;
 

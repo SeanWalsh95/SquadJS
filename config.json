@@ -185,8 +185,7 @@
       "discordClient": "discord",
       "database": "mysql",
       "channelID": "",
-      "verifySteamID": false,
-      "adminRoleID": null
+      "verifySteamID": false
     },
     {
       "plugin": "DiscordSubsystemRestarter",

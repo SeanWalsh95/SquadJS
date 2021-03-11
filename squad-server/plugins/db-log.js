@@ -424,6 +424,7 @@ export default class DBLog extends BasePlugin {
       where: { server: this.options.overrideServerID || this.server.id, endTime: null }
     });
 
+    this.server.on('PLAYER_CONNECTED_RCON', this.playerConnectedRCON);
     this.server.on('TICK_RATE', this.onTickRate);
     this.server.on('UPDATED_A2S_INFORMATION', this.onUpdatedA2SInformation);
     this.server.on('NEW_GAME', this.onNewGame);
@@ -433,12 +434,20 @@ export default class DBLog extends BasePlugin {
   }
 
   async unmount() {
+    this.server.removeEventListener('PLAYER_CONNECTED_RCON', this.playerConnectedRCON);
     this.server.removeEventListener('TICK_RATE', this.onTickRate);
     this.server.removeEventListener('UPDATED_A2S_INFORMATION', this.onTickRate);
     this.server.removeEventListener('NEW_GAME', this.onNewGame);
     this.server.removeEventListener('PLAYER_WOUNDED', this.onPlayerWounded);
     this.server.removeEventListener('PLAYER_DIED', this.onPlayerDied);
     this.server.removeEventListener('PLAYER_REVIVED', this.onPlayerRevived);
+  }
+
+  async playerConnectedRCON(player) {
+    await this.models.SteamUser.upsert({
+      steamID: player.steamID,
+      lastName: player.name
+    });
   }
 
   async onTickRate(info) {

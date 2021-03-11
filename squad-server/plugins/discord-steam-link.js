@@ -176,7 +176,7 @@ export default class DiscordSteamLink extends DiscordBasePlugin {
   }
 
   async getSteamIdFromURL(communityURL) {
-    const steamData = scrapeSteamProfile(communityURL);
+    const steamData = await scrapeSteamProfile(communityURL);
     if (steamData) {
       await this.options.database.query(
         `INSERT DBLog_SteamUsers (steamID, lastName)

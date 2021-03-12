@@ -43,11 +43,11 @@ export default class SCBLInfo extends DiscordBasePlugin {
   }
 
   async mount() {
-    this.server.on('PLAYER_CONNECTED', this.onPlayerConnected);
+    this.server.on('PLAYER_CONNECTED_RCON', this.onPlayerConnected);
   }
 
   async unmount() {
-    this.server.removeEventListener('PLAYER_CONNECTED', this.onPlayerConnected);
+    this.server.removeEventListener('PLAYER_CONNECTED_RCON', this.onPlayerConnected);
   }
 
   async onPlayerConnected(info) {

@@ -444,10 +444,10 @@ export default class DBLog extends BasePlugin {
     this.server.removeEventListener('PLAYER_REVIVED', this.onPlayerRevived);
   }
 
-  async playerConnectedRCON(player) {
+  async playerConnectedRCON(info) {
     await this.models.SteamUser.upsert({
-      steamID: player.steamID,
-      lastName: player.name
+      steamID: info.player.steamID,
+      lastName: info.player.name
     });
   }
 

@@ -329,11 +329,11 @@ export default class SquadServer extends EventEmitter {
       for (const player of await this.rcon.getListPlayers()) {
         if (!(player.steamID in oldPlayerInfo)) {
           this.emit('PLAYER_CONNECTED_RCON', {
-                "raw": "",
-               "time": Date.now(),
-            "chainID": null,
-             "player":player,
-              "event":"PLAYER_CONNECTED_RCON"
+            raw: '',
+            time: new Date().toISOString(),
+            chainID: null,
+            player: player,
+            event: 'PLAYER_CONNECTED_RCON'
           });
         }
         players.push({

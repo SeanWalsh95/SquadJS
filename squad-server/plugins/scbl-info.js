@@ -92,7 +92,7 @@ export default class SCBLInfo extends DiscordBasePlugin {
 
       if (!data.steamUser) {
         this.verbose(
-          2,
+          3,
           `Player ${info.player.name} (Steam ID: ${info.player.steamID}) is not listed in the Squad Community Ban List.`
         );
         return;
@@ -101,7 +101,7 @@ export default class SCBLInfo extends DiscordBasePlugin {
       if (data.steamUser.reputationPoints < this.options.threshold) {
         this.verbose(
           2,
-          `Player ${info.player.name} (Steam ID: ${info.player.steamID}) has a reputation below the threshold.`
+          `Player ${info.player.name} (Steam ID: ${info.player.steamID}) has a reputation below the threshold.  (${data.steamUser.reputationPoints}<${this.options.threshold})`
         );
         return;
       }

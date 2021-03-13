@@ -51,6 +51,8 @@ export default class SCBLInfo extends DiscordBasePlugin {
   }
 
   async onPlayerConnected(info) {
+    this.verbose(3, `Checking SCBL for ${info.player.name} sID:${info.player.steamID} `);
+    this.verbose(4, JSON.stringify(info));
     try {
       const data = await request(
         'https://squad-community-ban-list.com/graphql',

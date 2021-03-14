@@ -157,13 +157,13 @@ export default class DiscordBaseMessageUpdater extends BasePlugin {
       const { channelID, messageID } = subscribedMessage;
 
       try {
-        this.verbose(1, `Getting message (Channel ID: ${channelID}, Message ID: ${messageID})...`);
+        this.verbose(2, `Getting message (Channel ID: ${channelID}, Message ID: ${messageID})...`);
         const channel = await this.options.discordClient.channels.fetch(channelID);
         const message = await channel.messages.fetch(messageID);
 
-        this.verbose(1, `Updating message (Channel ID: ${channelID}, Message ID: ${messageID})...`);
+        this.verbose(2, `Updating message (Channel ID: ${channelID}, Message ID: ${messageID})...`);
         await message.edit(generatedMessage);
-        this.verbose(1, `Updated message (Channel ID: ${channelID}, Message ID: ${messageID}).`);
+        this.verbose(2, `Updated message (Channel ID: ${channelID}, Message ID: ${messageID}).`);
       } catch (err) {
         if (err.code === 10008) {
           this.verbose(

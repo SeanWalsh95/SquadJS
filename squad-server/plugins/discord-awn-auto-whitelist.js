@@ -211,7 +211,7 @@ export default class DiscordAwnAutoWhitelist extends DiscordBasePlugin {
         entry.member = member;
         entry.steamID = userData.steamID;
         entry.listID = listID;
-        entry.reason = 'Discord Role';
+        entry.reason = `Role: ${role.name}`;
         const res = await this.addAdmin(entry);
 
         if (res.success) this.verbose(2, `Added ${member.displayName} to whitelist`);

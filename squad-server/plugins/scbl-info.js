@@ -50,6 +50,22 @@ export default class SCBLInfo extends DiscordBasePlugin {
     this.server.removeEventListener('PLAYER_CONNECTED_RCON', this.onPlayerConnected);
   }
 
+  getIsoDate(info) {
+    function isIsoDate(str) {
+      if (!/\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{3}Z/.test(str)) return false;
+      const d = new Date(str);
+      return d.toISOString() === str;
+    }
+
+    let time = new Date().toISOString();
+    if (info.time instanceof Date) {
+      time = info.time.toISOString();
+    } else if (isIsoDate(info.time)) {
+      time = info.time;
+    }
+    return time;
+  }
+
   async onPlayerConnected(info) {
     this.verbose(3, `Checking SCBL for ${info.player.name} sID:${info.player.steamID} `);
     this.verbose(4, JSON.stringify(info));
@@ -149,7 +165,7 @@ export default class SCBLInfo extends DiscordBasePlugin {
             }
           ],
           color: '#ffc40b',
-          timestamp: info.time.toISOString(),
+          timestamp: this.getIsoDate(info),
           footer: {
             text: 'Powered by SquadJS and the Squad Community Ban List'
           }
@@ -158,7 +174,7 @@ export default class SCBLInfo extends DiscordBasePlugin {
     } catch (err) {
       this.verbose(
         1,
-        `Failed to fetch Squad Community Ban List data for player ${info.name} (Steam ID: ${info.steamID}): `,
+        `Failed to fetch Squad Community Ban List data for player ${info.player.name} (Steam ID: ${info.player.steamID}): `,
         err
       );
     }

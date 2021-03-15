@@ -65,6 +65,11 @@ export default class DiscordAwnAutoWhitelist extends DiscordBasePlugin {
         description: 'Discord Role ID and the AWN Admin List ID Pairs',
         default: {},
         example: { '667741905228136459': '1234', '667741905228136460': '1452' }
+      },
+      updateInterval: {
+        required: false,
+        description: 'Time in Seconds that admins are updated from discord roles',
+        default: 60 * 15
       }
     };
   }
@@ -121,7 +126,7 @@ export default class DiscordAwnAutoWhitelist extends DiscordBasePlugin {
     this.usersUpdateInterval = setInterval(async () => {
       await this.pruneUsers();
       await this.updateEntrysFromRoles();
-    }, 1000 * 60 * 15);
+    }, 1000 * this.options.updateInterval);
     this.requestMissingSteamIDsInterval = setInterval(async () => {
       this.requestMissingSteamIDs();
     }, 1000 * 60 * 30);

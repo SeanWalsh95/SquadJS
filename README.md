@@ -523,7 +523,12 @@ Grafana (NOT YET WORKING WITH V2):
            <pre><code>{
   "667741905228136459": "1234",
   "667741905228136460": "1452"
-}</code></pre></ul>
+}</code></pre>
+<li><h4>updateInterval</h4>
+           <h6>Description</h6>
+           <p>Time in Seconds that admins are updated from discord roles</p>
+           <h6>Default</h6>
+           <pre><code>900</code></pre></li></ul>
         </details>
 
 <details>

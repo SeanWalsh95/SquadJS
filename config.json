@@ -111,7 +111,8 @@
       "database": "mysql",
       "serverID": "",
       "channelID": "",
-      "whitelistRoles": {}
+      "whitelistRoles": {},
+      "updateInterval": 900
     },
     {
       "plugin": "DiscordChat",

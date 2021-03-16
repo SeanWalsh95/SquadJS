@@ -103,8 +103,10 @@ export default class Discord75th extends BasePlugin {
     if (cmdMatch) {
       this.verbose(1, `parsed ${cmdMatch.groups.roleID} from ${message.content}`);
       const info = await this.getRoleInfo(cmdMatch.groups.roleID);
-      response = JSON.stringify(info);
+      response = JSON.stringify(info, null, 4);
     }
+
+    this.verbose(1, response);
 
     if (response) await this.respondToMessage(message, response);
   }

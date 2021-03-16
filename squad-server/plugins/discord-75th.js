@@ -62,7 +62,7 @@ export default class Discord75th extends BasePlugin {
 
   /** This requires the discord bot to have Privileged Gateway - SERVER MEMBERS INTENT  enabled */
   async getRoleInfo(roleID) {
-    const resp = [`DiscordID, DiscordName, DiscordTag, SteamID, IGN`];
+    const resp = [`SteamID, DiscordTag, DiscordName, IGN`];
 
     const role = await this.guild.roles.fetch(roleID);
     if (!role) return 'Role not found';
@@ -78,9 +78,9 @@ export default class Discord75th extends BasePlugin {
         ON s.steamID = u.steamID WHERE u.discordID = ${memberID}`,
         { type: Sequelize.QueryTypes.SELECT }
       );
-      const queryResp = rawQuerRes[0] || { steamID: 'None', IGN: 'None' };
+      const queryResp = rawQuerRes[0] || { steamID: '76500000000000000', IGN: 'None' };
 
-      resp.push(`${memberID}, ${member.displayName}, ${queryResp.steamID}, ${queryResp.IGN}`);
+      resp.push(`${queryResp.steamID}, ${member.tag}, ${member.displayName}, ${queryResp.IGN}`);
     }
 
     // JSON.stringify(info, null, 4)

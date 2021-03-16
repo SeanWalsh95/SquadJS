@@ -86,6 +86,7 @@ export default class Discord75th extends BasePlugin {
     }
 
     // JSON.stringify(info, null, 4)
+    resp.unshift(`${resp.length - 1} users with Role ${role.name}`);
     return resp.join('\n');
   }
 

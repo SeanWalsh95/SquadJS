@@ -64,8 +64,8 @@ export default class Discord75th extends BasePlugin {
     const resp = {};
 
     const role = await this.guild.roles.fetch(roleID);
-    if (!role) return {};
-    this.verbose(2, `Searching "${role.name}"...`);
+    if (!role) return 'Role not found';
+    this.verbose(1, `Searching "${role.name}"...`);
 
     for (const [memberID, member] of await this.guild.members.fetch()) {
       if (!member._roles.includes(role.id)) continue;

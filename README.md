@@ -371,6 +371,37 @@ Grafana (NOT YET WORKING WITH V2):
         </details>
 
 <details>
+          <summary>Discord75th</summary>
+          <h2>Discord75th</h2>
+          <p>Custom 75th plugin</p>
+          <h3>Options</h3>
+          <ul><li><h4>discordClient (Required)</h4>
+           <h6>Description</h6>
+           <p>Discord connector name.</p>
+           <h6>Default</h6>
+           <pre><code>discord</code></pre></li>
+<li><h4>database (Required)</h4>
+           <h6>Description</h6>
+           <p>The Sequelize connector to log server information to.</p>
+           <h6>Default</h6>
+           <pre><code>mysql</code></pre></li>
+<li><h4>serverID (Required)</h4>
+           <h6>Description</h6>
+           <p>The discord serverID.</p>
+           <h6>Default</h6>
+           <pre><code></code></pre></li><h6>Example</h6>
+           <pre><code>667741905228136459</code></pre>
+<li><h4>permissions</h4>
+           <h6>Description</h6>
+           <p>list of role ID's that are allowed to use this</p>
+           <h6>Default</h6>
+           <pre><code>[]</code></pre></li><h6>Example</h6>
+           <pre><code>[
+  "123456789123456789"
+]</code></pre></ul>
+        </details>
+
+<details>
           <summary>DiscordAdminBroadcast</summary>
           <h2>DiscordAdminBroadcast</h2>
           <p>The <code>DiscordAdminBroadcast</code> plugin will send a copy of admin broadcasts made in game to a Discord channel.</p>

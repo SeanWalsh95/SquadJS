@@ -76,6 +76,14 @@
       "overrideServerID": null
     },
     {
+      "plugin": "Discord75th",
+      "enabled": false,
+      "discordClient": "discord",
+      "database": "mysql",
+      "serverID": "",
+      "permissions": []
+    },
+    {
       "plugin": "DiscordAdminBroadcast",
       "enabled": false,
       "discordClient": "discord",

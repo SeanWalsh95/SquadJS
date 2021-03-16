@@ -70,6 +70,7 @@ export default class Discord75th extends BasePlugin {
     for (const [memberID, member] of await this.guild.members.fetch()) {
       if (!member._roles.includes(role.id)) continue;
 
+      this.verbose(1, `Querying "${member.displayName}"...`);
       const rawQuerRes = await this.db.query(
         `SELECT u.steamID, s.lastName AS "IGN" FROM DiscordSteam_Users u 
         LEFT JOIN ( SELECT * from DBLog_SteamUsers ) s 
@@ -97,8 +98,9 @@ export default class Discord75th extends BasePlugin {
     // no perms return
     if (!this.options.permissions.some((roleID) => message.member._roles.includes(roleID))) return;
 
-    const m = message.content.match(/!getS64 (?<roldID>\d+)/);
+    const m = message.content.match(/!getS64\s+(?<roldID>\d+)/);
     if (m) {
+      this.verbose(1, `parsed group as ${m.groups.roleID}`);
       const info = await this.getRoleInfo(m.groups.roleID);
       response = JSON.stringify(info);
     }

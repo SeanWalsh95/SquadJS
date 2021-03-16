@@ -71,7 +71,7 @@ export default class Discord75th extends BasePlugin {
     for (const [memberID, member] of await this.guild.members.fetch()) {
       if (!member._roles.includes(role.id)) continue;
 
-      this.verbose(1, `Querying "${member.displayName}"...`);
+      this.verbose(2, `Querying "${member.displayName}"...`);
       const rawQuerRes = await this.db.query(
         `SELECT u.steamID, s.lastName AS "IGN" FROM DiscordSteam_Users u 
         LEFT JOIN ( SELECT * from DBLog_SteamUsers ) s 
@@ -84,6 +84,7 @@ export default class Discord75th extends BasePlugin {
         `${queryResp.steamID}, ${member.user.tag}, ${member.displayName}, ${queryResp.IGN}`
       );
     }
+    this.verbose(1, `Found ${resp.length - 1} users for"${role.name}"...`);
 
     // JSON.stringify(info, null, 4)
     resp.unshift(`${resp.length - 1} users with Role ${role.name}`);
@@ -102,11 +103,11 @@ export default class Discord75th extends BasePlugin {
 
     const cmdMatch = message.content.match(/!getS64\s+(?<roleID>\d+)/);
     if (cmdMatch) {
-      this.verbose(1, `parsed ${cmdMatch.groups.roleID} from ${message.content}`);
+      this.verbose(2, `parsed ${cmdMatch.groups.roleID} from ${message.content}`);
       response = await this.getRoleInfo(cmdMatch.groups.roleID);
     }
 
-    this.verbose(1, response);
+    this.verbose(4, response);
 
     if (response) await this.respondToMessage(message, response);
   }

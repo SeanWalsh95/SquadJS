@@ -78,13 +78,9 @@ export default class Discord75th extends BasePlugin {
         ON s.steamID = u.steamID WHERE u.discordID = ${memberID}`,
         { type: Sequelize.QueryTypes.SELECT }
       );
-      const queryResp = rawQuerRes[0];
+      const queryResp = rawQuerRes[0] || { steamID: 'None', IGN: 'None' };
 
-      resp.push(
-        `${memberID}, ${member.displayName}, ${queryResp.steamID || 'None'}, ${
-          queryResp.IGN || 'None'
-        }`
-      );
+      resp.push(`${memberID}, ${member.displayName}, ${queryResp.steamID}, ${queryResp.IGN}`);
     }
 
     return resp.join('\n');

@@ -98,7 +98,7 @@ export default class Discord75th extends BasePlugin {
     // no perms return
     if (!this.options.permissions.some((roleID) => message.member._roles.includes(roleID))) return;
 
-    const cmdMatch = message.content.match(/!getS64\s+(?<roldID>\d+)/);
+    const cmdMatch = message.content.match(/!getS64\s+(?<roleID>\d+)/);
     if (cmdMatch) {
       this.verbose(1, `parsed ${cmdMatch.groups.roleID} from ${message.content}`);
       const info = await this.getRoleInfo(cmdMatch.groups.roleID);

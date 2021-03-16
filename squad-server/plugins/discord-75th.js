@@ -42,6 +42,7 @@ export default class Discord75th extends BasePlugin {
   constructor(server, options, connectors) {
     super(server, options, connectors);
 
+    this.db = this.options.database;
     this.commands = ['!getS64'];
 
     this.onMessage = this.onMessage.bind(this);

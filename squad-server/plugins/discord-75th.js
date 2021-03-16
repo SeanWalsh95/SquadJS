@@ -83,6 +83,7 @@ export default class Discord75th extends BasePlugin {
       resp.push(`${memberID}, ${member.displayName}, ${queryResp.steamID}, ${queryResp.IGN}`);
     }
 
+    // JSON.stringify(info, null, 4)
     return resp.join('\n');
   }
 
@@ -99,8 +100,7 @@ export default class Discord75th extends BasePlugin {
     const cmdMatch = message.content.match(/!getS64\s+(?<roleID>\d+)/);
     if (cmdMatch) {
       this.verbose(1, `parsed ${cmdMatch.groups.roleID} from ${message.content}`);
-      const info = await this.getRoleInfo(cmdMatch.groups.roleID);
-      response = JSON.stringify(info, null, 4);
+      response = await this.getRoleInfo(cmdMatch.groups.roleID);
     }
 
     this.verbose(1, response);

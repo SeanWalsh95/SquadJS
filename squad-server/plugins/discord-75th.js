@@ -80,7 +80,9 @@ export default class Discord75th extends BasePlugin {
       );
       const queryResp = rawQuerRes[0] || { steamID: '76500000000000000', IGN: 'None' };
 
-      resp.push(`${queryResp.steamID}, ${member.tag}, ${member.displayName}, ${queryResp.IGN}`);
+      resp.push(
+        `${queryResp.steamID}, ${member.user.tag}, ${member.displayName}, ${queryResp.IGN}`
+      );
     }
 
     // JSON.stringify(info, null, 4)

@@ -861,56 +861,6 @@ Grafana:
         </details>
 
 <details>
-          <summary>VoteMapSkip</summary>
-          <h2>VoteMapSkip</h2>
-          <p>The <code>skipmap</code> plugin will allow players to vote via <code>+</code>/<code>-</code> if they wish to skip the current map</p>
-          <h3>Options</h3>
-          <ul><li><h4>command</h4>
-           <h6>Description</h6>
-           <p>The name of the command to be used in chat.</p>
-           <h6>Default</h6>
-           <pre><code>!skipmap</code></pre></li>
-<li><h4>voteDefinition</h4>
-           <h6>Description</h6>
-           <p>Defines what counts as a vote</p>
-           <h6>Default</h6>
-           <pre><code>{
-  "+": true,
-  "-": false
-}</code></pre></li>
-<li><h4>voteDuration</h4>
-           <h6>Description</h6>
-           <p>How long the vote should go on for.</p>
-           <h6>Default</h6>
-           <pre><code>300000</code></pre></li>
-<li><h4>startTimer</h4>
-           <h6>Description</h6>
-           <p>Time before voting is allowed.</p>
-           <h6>Default</h6>
-           <pre><code>900000</code></pre></li>
-<li><h4>endTimer</h4>
-           <h6>Description</h6>
-           <p>Time before voting is no longer allowed.</p>
-           <h6>Default</h6>
-           <pre><code>1800000</code></pre></li>
-<li><h4>pastVoteTimer</h4>
-           <h6>Description</h6>
-           <p>Time that needs to have passed since the last vote.</p>
-           <h6>Default</h6>
-           <pre><code>600000</code></pre></li>
-<li><h4>minimumVotes</h4>
-           <h6>Description</h6>
-           <p>The minimum percentage of people required to vote for the vote to go through.</p>
-           <h6>Default</h6>
-           <pre><code>20</code></pre></li>
-<li><h4>reminderInterval</h4>
-           <h6>Description</h6>
-           <p>The time between individual reminders.</p>
-           <h6>Default</h6>
-           <pre><code>120000</code></pre></li></ul>
-        </details>
-
-<details>
           <summary>VoteMap123</summary>
           <h2>VoteMap123</h2>
           <p>The <code>mapvote-123</code> plugin provides map voting functionality. This variant of map voting allows admins to specify a small number of maps which are numbered and announced in admin broadcasts. Players can then vote for the map their choice by typing the corresponding map number into chat.
@@ -976,6 +926,56 @@ Admin Commands (Admin Chat Only):
            <h6>Default</h6>
            <pre><code>null</code></pre></li><h6>Example</h6>
            <pre><code>5</code></pre></ul>
+        </details>
+
+<details>
+          <summary>VoteMapSkip</summary>
+          <h2>VoteMapSkip</h2>
+          <p>The <code>skipmap</code> plugin will allow players to vote via <code>+</code>/<code>-</code> if they wish to skip the current map</p>
+          <h3>Options</h3>
+          <ul><li><h4>command</h4>
+           <h6>Description</h6>
+           <p>The name of the command to be used in chat.</p>
+           <h6>Default</h6>
+           <pre><code>!skipmap</code></pre></li>
+<li><h4>voteDefinition</h4>
+           <h6>Description</h6>
+           <p>Defines what counts as a vote</p>
+           <h6>Default</h6>
+           <pre><code>{
+  "+": true,
+  "-": false
+}</code></pre></li>
+<li><h4>voteDuration</h4>
+           <h6>Description</h6>
+           <p>How long the vote should go on for.</p>
+           <h6>Default</h6>
+           <pre><code>300000</code></pre></li>
+<li><h4>startTimer</h4>
+           <h6>Description</h6>
+           <p>Time before voting is allowed.</p>
+           <h6>Default</h6>
+           <pre><code>900000</code></pre></li>
+<li><h4>endTimer</h4>
+           <h6>Description</h6>
+           <p>Time before voting is no longer allowed.</p>
+           <h6>Default</h6>
+           <pre><code>1800000</code></pre></li>
+<li><h4>pastVoteTimer</h4>
+           <h6>Description</h6>
+           <p>Time that needs to have passed since the last vote.</p>
+           <h6>Default</h6>
+           <pre><code>600000</code></pre></li>
+<li><h4>minimumVotes</h4>
+           <h6>Description</h6>
+           <p>The minimum percentage of people required to vote for the vote to go through.</p>
+           <h6>Default</h6>
+           <pre><code>20</code></pre></li>
+<li><h4>reminderInterval</h4>
+           <h6>Description</h6>
+           <p>The time between individual reminders.</p>
+           <h6>Default</h6>
+           <pre><code>120000</code></pre></li></ul>
         </details>
 
 <br>

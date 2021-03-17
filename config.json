@@ -211,6 +211,19 @@
       "command": "randomize"
     },
     {
+      "plugin": "VoteMap123",
+      "enabled": false,
+      "minVoteCount": null
+    },
+    {
+      "plugin": "VoteMapDidYouMean",
+      "enabled": false,
+      "layerFilter": "layerFilter",
+      "alwaysOn": true,
+      "minPlayerCount": null,
+      "minVoteCount": null
+    },
+    {
       "plugin": "VoteMapSkip",
       "enabled": false,
       "command": "!skipmap",
@@ -224,19 +237,6 @@
       "pastVoteTimer": 600000,
       "minimumVotes": 20,
       "reminderInterval": 120000
-    },
-    {
-      "plugin": "VoteMap123",
-      "enabled": false,
-      "minVoteCount": null
-    },
-    {
-      "plugin": "VoteMapDidYouMean",
-      "enabled": false,
-      "layerFilter": "layerFilter",
-      "alwaysOn": true,
-      "minPlayerCount": null,
-      "minVoteCount": null
     }
   ],
   "logger": {

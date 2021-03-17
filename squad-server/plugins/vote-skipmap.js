@@ -1,6 +1,6 @@
 import BasePlugin from './base-plugin.js';
 
-export default class DiscordChat extends BasePlugin {
+export default class VoteMapSkip extends BasePlugin {
   static get description() {
     return 'The <code>skipmap</code> plugin will allow players to vote via <code>+</code>/<code>-</code> if they wish to skip the current map';
   }
@@ -18,7 +18,7 @@ export default class DiscordChat extends BasePlugin {
       },
       voteDefinition: {
         required: false,
-        description: 'Defines what conunts as a vote',
+        description: 'Defines what counts as a vote',
         default: { '+': true, '-': false }
       },
       voteDuration: {
@@ -71,8 +71,6 @@ export default class DiscordChat extends BasePlugin {
   async mount() {
     this.server.on('NEW_GAME', this.onNewGame);
     this.server.on('CHAT_MESSAGE', this.onChatMessage);
-
-    this.reminderBroadcastInterval = this.voteTimeout;
   }
 
   async unmount() {
@@ -92,7 +90,7 @@ export default class DiscordChat extends BasePlugin {
     if (!info.message.startsWith(this.options.command)) return;
 
     if (!this.voteActive) {
-      await this.initVote(info);
+      await this.startVote(info);
       return;
     }
 
@@ -133,7 +131,7 @@ export default class DiscordChat extends BasePlugin {
     return Object.values(this.votes).filter((voteToSkip) => !voteToSkip).length;
   }
 
-  async initVote(info) {
+  async startVote(info) {
     // check if enough time has passed since start of round and if not, inform the player
     if (
       this.server.layerHistory.length > 0 &&
@@ -167,6 +165,8 @@ export default class DiscordChat extends BasePlugin {
       await this.server.rcon.warn(info.steamID, 'Not enough time has passed since the last vote.');
       return;
     }
+
+    this.verbose(1, `Starting new vote...`);
 
     await this.server.rcon.warn(info.steamID, 'You have started a skip map vote.');
     await this.server.rcon.broadcast(
@@ -206,6 +206,7 @@ export default class DiscordChat extends BasePlugin {
     const posVotes = this.getPosVotes();
     const negVotes = this.getNegVotes();
 
+    this.verbose(1, `Finished vote +:${posVotes} -:${negVotes}`);
     if (posVotes > negVotes || votePassed) {
       this.server.rcon.broadcast(
         `The vote to skip the current map has passed. ${posVotes} voted in favour, ${negVotes} against.`

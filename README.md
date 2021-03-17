@@ -486,51 +486,39 @@ Grafana:
 <details>
           <summary>DiscordChat</summary>
           <h2>DiscordChat</h2>
-          <p>The <code>skipmap</code> plugin will allow players to vote via <code>+</code>/<code>-</code> if they wish to skip the current map</p>
+          <p>The <code>DiscordChat</code> plugin will log in-game chat to a Discord channel.</p>
           <h3>Options</h3>
-          <ul><li><h4>command</h4>
+          <ul><li><h4>discordClient (Required)</h4>
            <h6>Description</h6>
-           <p>The name of the command to be used in chat.</p>
+           <p>Discord connector name.</p>
            <h6>Default</h6>
-           <pre><code>!skipmap</code></pre></li>
-<li><h4>voteDefinition</h4>
+           <pre><code>discord</code></pre></li>
+<li><h4>channelID (Required)</h4>
            <h6>Description</h6>
-           <p>Defines what conunts as a vote</p>
+           <p>The ID of the channel to log admin broadcasts to.</p>
            <h6>Default</h6>
+           <pre><code></code></pre></li><h6>Example</h6>
+           <pre><code>667741905228136459</code></pre>
+<li><h4>chatColors</h4>
+           <h6>Description</h6>
+           <p>The color of the embed for each chat.</p>
+           <h6>Default</h6>
+           <pre><code>{}</code></pre></li><h6>Example</h6>
            <pre><code>{
-  "+": true,
-  "-": false
-}</code></pre></li>
-<li><h4>voteDuration</h4>
+  "ChatAll": 16761867
+}</code></pre>
+<li><h4>color</h4>
            <h6>Description</h6>
-           <p>How long the vote should go on for.</p>
+           <p>The color of the embed.</p>
            <h6>Default</h6>
-           <pre><code>300000</code></pre></li>
-<li><h4>startTimer</h4>
+           <pre><code>16761867</code></pre></li>
+<li><h4>ignoreChats</h4>
            <h6>Description</h6>
-           <p>Time before voting is allowed.</p>
+           <p>A list of chat names to ignore.</p>
            <h6>Default</h6>
-           <pre><code>900000</code></pre></li>
-<li><h4>endTimer</h4>
-           <h6>Description</h6>
-           <p>Time before voting is no longer allowed.</p>
-           <h6>Default</h6>
-           <pre><code>1800000</code></pre></li>
-<li><h4>pastVoteTimer</h4>
-           <h6>Description</h6>
-           <p>Time that needs to have passed since the last vote.</p>
-           <h6>Default</h6>
-           <pre><code>600000</code></pre></li>
-<li><h4>minimumVotes</h4>
-           <h6>Description</h6>
-           <p>The minimum percentage of people required to vote for the vote to go through.</p>
-           <h6>Default</h6>
-           <pre><code>20</code></pre></li>
-<li><h4>reminderInterval</h4>
-           <h6>Description</h6>
-           <p>The time between individual reminders.</p>
-           <h6>Default</h6>
-           <pre><code>120000</code></pre></li></ul>
+           <pre><code>[
+  "ChatSquad"
+]</code></pre></li></ul>
         </details>
 
 <details>
@@ -870,6 +858,124 @@ Grafana:
            <p>The command used to randomize the teams.</p>
            <h6>Default</h6>
            <pre><code>randomize</code></pre></li></ul>
+        </details>
+
+<details>
+          <summary>VoteMapSkip</summary>
+          <h2>VoteMapSkip</h2>
+          <p>The <code>skipmap</code> plugin will allow players to vote via <code>+</code>/<code>-</code> if they wish to skip the current map</p>
+          <h3>Options</h3>
+          <ul><li><h4>command</h4>
+           <h6>Description</h6>
+           <p>The name of the command to be used in chat.</p>
+           <h6>Default</h6>
+           <pre><code>!skipmap</code></pre></li>
+<li><h4>voteDefinition</h4>
+           <h6>Description</h6>
+           <p>Defines what counts as a vote</p>
+           <h6>Default</h6>
+           <pre><code>{
+  "+": true,
+  "-": false
+}</code></pre></li>
+<li><h4>voteDuration</h4>
+           <h6>Description</h6>
+           <p>How long the vote should go on for.</p>
+           <h6>Default</h6>
+           <pre><code>300000</code></pre></li>
+<li><h4>startTimer</h4>
+           <h6>Description</h6>
+           <p>Time before voting is allowed.</p>
+           <h6>Default</h6>
+           <pre><code>900000</code></pre></li>
+<li><h4>endTimer</h4>
+           <h6>Description</h6>
+           <p>Time before voting is no longer allowed.</p>
+           <h6>Default</h6>
+           <pre><code>1800000</code></pre></li>
+<li><h4>pastVoteTimer</h4>
+           <h6>Description</h6>
+           <p>Time that needs to have passed since the last vote.</p>
+           <h6>Default</h6>
+           <pre><code>600000</code></pre></li>
+<li><h4>minimumVotes</h4>
+           <h6>Description</h6>
+           <p>The minimum percentage of people required to vote for the vote to go through.</p>
+           <h6>Default</h6>
+           <pre><code>20</code></pre></li>
+<li><h4>reminderInterval</h4>
+           <h6>Description</h6>
+           <p>The time between individual reminders.</p>
+           <h6>Default</h6>
+           <pre><code>120000</code></pre></li></ul>
+        </details>
+
+<details>
+          <summary>VoteMap123</summary>
+          <h2>VoteMap123</h2>
+          <p>The <code>mapvote-123</code> plugin provides map voting functionality. This variant of map voting allows admins to specify a small number of maps which are numbered and announced in admin broadcasts. Players can then vote for the map their choice by typing the corresponding map number into chat.
+
+Player Commands:
+ * <code>!mapvote help</code> - Show other commands players can use.
+ * <code>!mapvote results</code> - Show the results of the current map vote.
+ * <code><layer number></code> - Vote for a layer using the layer number.
+
+
+Admin Commands (Admin Chat Only):
+ * <code>!mapvote start <layer name 1>, <layer name 2>, ...</code> - Start a new map vote with the specified maps.
+ * <code>!mapvote restart</code> - Restarts the map vote with the same layers.
+ * <code>!mapvote end</code> - End the map vote and announce the winner.
+ * <code>!mapvote destroy</code> - End the map vote without announcing the winner.
+</p>
+          <h3>Options</h3>
+          <ul><li><h4>minVoteCount</h4>
+           <h6>Description</h6>
+           <p>The minimum number of votes required for the vote to succeed.</p>
+           <h6>Default</h6>
+           <pre><code>null</code></pre></li><h6>Example</h6>
+           <pre><code>3</code></pre></ul>
+        </details>
+
+<details>
+          <summary>VoteMapDidYouMean</summary>
+          <h2>VoteMapDidYouMean</h2>
+          <p>The <code>mapvote-did-you-mean</code> plugin provides map voting functionality. This variant of map voting uses a "Did you mean?" algorithm to allow players to easily select one of a large pool of layers by typing it's name into the in-game chat.
+
+Player Commands:
+ * <code>!mapvote help</code> - Show other commands players can use.
+ * <code>!mapvote results</code> - Show the results of the current map vote.
+ * <code>!mapvote <layer name></code> - Vote for the specified layer. Misspelling will be corrected where possible.
+
+
+Admin Commands (Admin Chat Only):
+ * <code>!mapvote start</code> - Start a new map vote
+ * <code>!mapvote restart</code> - Restarts the map vote.
+ * <code>!mapvote end</code> - End the map vote and announce the winner.
+ * <code>!mapvote destroy</code> - End the map vote without announcing the winner.
+</p>
+          <h3>Options</h3>
+          <ul><li><h4>layerFilter</h4>
+           <h6>Description</h6>
+           <p>The layers players can choose from.</p>
+           <h6>Default</h6>
+           <pre><code>layerFilter</code></pre></li>
+<li><h4>alwaysOn</h4>
+           <h6>Description</h6>
+           <p>If true then the map voting system will always be live.</p>
+           <h6>Default</h6>
+           <pre><code>true</code></pre></li>
+<li><h4>minPlayerCount</h4>
+           <h6>Description</h6>
+           <p>The minimum number of players required for the vote to succeed.</p>
+           <h6>Default</h6>
+           <pre><code>null</code></pre></li><h6>Example</h6>
+           <pre><code>10</code></pre>
+<li><h4>minVoteCount</h4>
+           <h6>Description</h6>
+           <p>The minimum number of votes required for the vote to succeed.</p>
+           <h6>Default</h6>
+           <pre><code>null</code></pre></li><h6>Example</h6>
+           <pre><code>5</code></pre></ul>
         </details>
 
 <br>

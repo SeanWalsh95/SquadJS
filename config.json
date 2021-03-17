@@ -105,18 +105,14 @@
     },
     {
       "plugin": "DiscordChat",
-      "enabled": false,
-      "command": "!skipmap",
-      "voteDefinition": {
-        "+": true,
-        "-": false
-      },
-      "voteDuration": 300000,
-      "startTimer": 900000,
-      "endTimer": 1800000,
-      "pastVoteTimer": 600000,
-      "minimumVotes": 20,
-      "reminderInterval": 120000
+      "enabled": true,
+      "discordClient": "discord",
+      "channelID": "",
+      "chatColors": {},
+      "color": 16761867,
+      "ignoreChats": [
+        "ChatSquad"
+      ]
     },
     {
       "plugin": "DiscordDebug",
@@ -213,6 +209,34 @@
       "plugin": "TeamRandomizer",
       "enabled": true,
       "command": "randomize"
+    },
+    {
+      "plugin": "VoteMapSkip",
+      "enabled": false,
+      "command": "!skipmap",
+      "voteDefinition": {
+        "+": true,
+        "-": false
+      },
+      "voteDuration": 300000,
+      "startTimer": 900000,
+      "endTimer": 1800000,
+      "pastVoteTimer": 600000,
+      "minimumVotes": 20,
+      "reminderInterval": 120000
+    },
+    {
+      "plugin": "VoteMap123",
+      "enabled": false,
+      "minVoteCount": null
+    },
+    {
+      "plugin": "VoteMapDidYouMean",
+      "enabled": false,
+      "layerFilter": "layerFilter",
+      "alwaysOn": true,
+      "minPlayerCount": null,
+      "minVoteCount": null
     }
   ],
   "logger": {

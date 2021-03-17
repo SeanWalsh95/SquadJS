@@ -212,11 +212,11 @@ export default class VoteMapSkip extends BasePlugin {
         `The vote to skip the current map has passed. ${posVotes} voted in favour, ${negVotes} against.`
       );
       await this.server.rcon.execute('AdminEndMatch');
-      this.clearVote();
     } else {
       this.server.rcon.broadcast(
         `Not enough people voted in favour of skipping the match. ${posVotes} voted in favour, ${negVotes} against.`
       );
     }
+    this.clearVote();
   }
 }

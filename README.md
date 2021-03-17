@@ -351,7 +351,7 @@ Interested in creating your own plugin? [See more here](./squad-server/plugins/r
           <h2>DBLog</h2>
           <p>The <code>mysql-log</code> plugin will log various server statistics and events to a database. This is great for server performance monitoring and/or player stat tracking.
 
-Grafana (NOT YET WORKING WITH V2):
+Grafana:
 <ul><li> <a href="https://grafana.com/">Grafana</a> is a cool way of viewing server statistics stored in the database.</li>
 <li>Install Grafana.</li>
 <li>Add your database as a datasource named <code>SquadJS</code>.</li>
@@ -486,39 +486,51 @@ Grafana (NOT YET WORKING WITH V2):
 <details>
           <summary>DiscordChat</summary>
           <h2>DiscordChat</h2>
-          <p>The <code>DiscordChat</code> plugin will log in-game chat to a Discord channel.</p>
+          <p>The <code>skipmap</code> plugin will allow players to vote via <code>+</code>/<code>-</code> if they wish to skip the current map</p>
           <h3>Options</h3>
-          <ul><li><h4>discordClient (Required)</h4>
+          <ul><li><h4>command</h4>
            <h6>Description</h6>
-           <p>Discord connector name.</p>
+           <p>The name of the command to be used in chat.</p>
            <h6>Default</h6>
-           <pre><code>discord</code></pre></li>
-<li><h4>channelID (Required)</h4>
+           <pre><code>!skipmap</code></pre></li>
+<li><h4>voteDefinition</h4>
            <h6>Description</h6>
-           <p>The ID of the channel to log admin broadcasts to.</p>
+           <p>Defines what conunts as a vote</p>
            <h6>Default</h6>
-           <pre><code></code></pre></li><h6>Example</h6>
-           <pre><code>667741905228136459</code></pre>
-<li><h4>chatColors</h4>
-           <h6>Description</h6>
-           <p>The color of the embed for each chat.</p>
-           <h6>Default</h6>
-           <pre><code>{}</code></pre></li><h6>Example</h6>
            <pre><code>{
-  "ChatAll": 16761867
-}</code></pre>
-<li><h4>color</h4>
+  "+": true,
+  "-": false
+}</code></pre></li>
+<li><h4>voteDuration</h4>
            <h6>Description</h6>
-           <p>The color of the embed.</p>
+           <p>How long the vote should go on for.</p>
            <h6>Default</h6>
-           <pre><code>16761867</code></pre></li>
-<li><h4>ignoreChats</h4>
+           <pre><code>300000</code></pre></li>
+<li><h4>startTimer</h4>
            <h6>Description</h6>
-           <p>A list of chat names to ignore.</p>
+           <p>Time before voting is allowed.</p>
            <h6>Default</h6>
-           <pre><code>[
-  "ChatSquad"
-]</code></pre></li></ul>
+           <pre><code>900000</code></pre></li>
+<li><h4>endTimer</h4>
+           <h6>Description</h6>
+           <p>Time before voting is no longer allowed.</p>
+           <h6>Default</h6>
+           <pre><code>1800000</code></pre></li>
+<li><h4>pastVoteTimer</h4>
+           <h6>Description</h6>
+           <p>Time that needs to have passed since the last vote.</p>
+           <h6>Default</h6>
+           <pre><code>600000</code></pre></li>
+<li><h4>minimumVotes</h4>
+           <h6>Description</h6>
+           <p>The minimum percentage of people required to vote for the vote to go through.</p>
+           <h6>Default</h6>
+           <pre><code>20</code></pre></li>
+<li><h4>reminderInterval</h4>
+           <h6>Description</h6>
+           <p>The time between individual reminders.</p>
+           <h6>Default</h6>
+           <pre><code>120000</code></pre></li></ul>
         </details>
 
 <details>

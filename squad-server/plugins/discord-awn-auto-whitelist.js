@@ -180,6 +180,7 @@ export default class DiscordAwnAutoWhitelist extends DiscordBasePlugin {
 
   /** This requires the discord bot to have Privileged Gateway - SERVER MEMBERS INTENT  enabled */
   async updateEntrysFromRoles() {
+    this.missingSteamIDs = {};
     this.verbose(1, `Updating role rewards...`);
     for (const roleID of Object.keys(this.options.whitelistRoles)) {
       const role = await this.guild.roles.fetch(roleID);
@@ -233,11 +234,11 @@ export default class DiscordAwnAutoWhitelist extends DiscordBasePlugin {
       if (this.options.channelID) {
         const channel = await this.discord.channels.fetch(this.options.channelID);
         channel.send(
-          `${member.user} You have a pending reward but I need your steamID to give it to you, please send me your steam64ID`
+          `${member.user} You have a pending reward but I need your steamID to give it to you, please send me your steam64ID (https://steamid.io/)`
         );
       } else {
         member.send(
-          `You have a pending reward but I need your steamID to give it to you, please send me your steam64ID`
+          `You have a pending reward but I need your steamID to give it to you, please send me your steam64ID (https://steamid.io/)`
         );
       }
     }

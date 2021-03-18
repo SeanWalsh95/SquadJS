@@ -100,6 +100,8 @@ export default class DiscordServerStatus extends DiscordBaseMessageUpdater {
     embed.setFooter(COPYRIGHT_MESSAGE);
 
     // Set gradient embed color.
+    const totalSlots = this.server.publicSlots + this.server.reserveSlots || 100;
+    const currentPlayerCount = this.server.a2sPlayerCount || 0;
     embed.setColor(
       parseInt(
         tinygradient([
@@ -107,7 +109,7 @@ export default class DiscordServerStatus extends DiscordBaseMessageUpdater {
           { color: '#ffff00', pos: 0.5 },
           { color: '#00ff00', pos: 1 }
         ])
-          .rgbAt(this.server.a2sPlayerCount / (this.server.publicSlots + this.server.reserveSlots))
+          .rgbAt(currentPlayerCount / totalSlots)
           .toHex(),
         16
       )

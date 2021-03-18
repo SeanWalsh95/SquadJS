@@ -4,6 +4,8 @@ import Logger from 'core/logger';
 
 import Layer from './layer.js';
 
+import didYouMean from 'didyoumean';
+
 class Layers {
   constructor() {
     this.layers = [];
@@ -51,6 +53,11 @@ class Layers {
 
   getLayerByClassname(classname) {
     return this.getLayerByCondition((layer) => layer.classname === classname);
+  }
+
+  getLayerByDidYouMean(name) {
+    didYouMean.returnWinningObject = true;
+    return didYouMean(name, this.layers, 'name');
   }
 }
 

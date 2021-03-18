@@ -3,7 +3,7 @@ import BasePlugin from './base-plugin.js';
 
 import { COPYRIGHT_MESSAGE } from '../utils/constants.js';
 
-export default class VoteMapDidYouMean extends BasePlugin {
+export default class MapVoteDidYouMean extends BasePlugin {
   static get description() {
     return (
       'The <code>mapvote-did-you-mean</code> plugin provides map voting functionality. This variant of map voting uses a "Did you ' +

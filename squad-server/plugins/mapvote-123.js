@@ -4,7 +4,7 @@ import BasePlugin from './base-plugin.js';
 import { COPYRIGHT_MESSAGE } from '../utils/constants.js';
 import { LayerFilter } from '../utils/squad-layer-filter.js';
 
-export default class VoteMap123 extends BasePlugin {
+export default class MapVote123 extends BasePlugin {
   static get description() {
     return (
       'The <code>mapvote-123</code> plugin provides map voting functionality. This variant of map voting allows admins to specify ' +

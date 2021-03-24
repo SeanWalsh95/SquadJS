@@ -33,6 +33,12 @@ export default class DiscordSteamLink extends DiscordBasePlugin {
         default: '',
         example: '667741905228136459'
       },
+      fetchDisplanameInterval: {
+        required: false,
+        description: 'interval of time between pulling displaynames, null to disable',
+        default: null,
+        example: 1000 * 60 * 30
+      },
       verifySteamID: {
         required: false,
         description:
@@ -102,6 +108,10 @@ export default class DiscordSteamLink extends DiscordBasePlugin {
   async mount() {
     this.options.discordClient.on('message', this.onMessage);
 
+    if (this.options.fetchDisplanameInterval)
+      this.updateDisplaynameInterval = setInterval(async () => {
+        this.updateDisplaynames();
+      }, 1000 * 60);
     if (this.options.verifySteamID)
       this.sendUserTokenInterval = setInterval(async () => {
         this.sendUserToken();
@@ -110,6 +120,7 @@ export default class DiscordSteamLink extends DiscordBasePlugin {
 
   async unmount() {
     this.options.discordClient.removeEventListener('message', this.onMessage);
+    if (this.options.fetchDisplanameInterval) clearInterval(this.updateDisplaynameInterval);
     if (this.options.verifySteamID) clearInterval(this.sendUserTokenInterval);
   }
 
@@ -151,14 +162,11 @@ export default class DiscordSteamLink extends DiscordBasePlugin {
         steamID = steamIdMatch.groups.steamID;
       }
 
-      const guildMember = await this.guild.members.fetch(message.author.id);
-
       // find or create initial user entry
       const user = await this.DiscordUsers.findOrCreate({
         where: { discordID: message.author.id },
         defaults: {
           steamID: steamID,
-          discordDisplayname: guildMember.displayName,
           discordTag: message.author.tag,
           token: this.generateToken()
         }
@@ -168,14 +176,7 @@ export default class DiscordSteamLink extends DiscordBasePlugin {
       if (user && !user.verified) {
         await this.DiscordUsers.upsert({
           discordID: message.author.id,
-          discordDisplayname: guildMember.displayName,
           steamID: steamID,
-          discordTag: message.author.tag
-        });
-      } else {
-        await this.DiscordUsers.upsert({
-          discordID: message.author.id,
-          discordDisplayname: guildMember.displayName,
           discordTag: message.author.tag
         });
       }
@@ -186,6 +187,16 @@ export default class DiscordSteamLink extends DiscordBasePlugin {
         message.reply(
           `Thanks, you will be sent a "token" in game to confirm your account, send that token back to me.`
         );
+    }
+  }
+
+  async updateDisplaynames() {
+    for (const row of await this.DiscordUsers.findAll()) {
+      const member = await this.guild.members.fetch(row.discordID);
+      await this.DiscordUsers.upsert({
+        discordID: row.discordID,
+        discordDisplayname: member.displayName
+      });
     }
   }
 

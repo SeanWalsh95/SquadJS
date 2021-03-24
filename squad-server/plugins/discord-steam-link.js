@@ -194,7 +194,12 @@ export default class DiscordSteamLink extends DiscordBasePlugin {
 
     this.verbose(1, `Updating Displaynames...`);
     for (const row of await this.DiscordUsers.findAll()) {
-      const member = await guild.members.fetch(row.discordID);
+      let member = null;
+      try {
+        member = await guild.members.fetch(row.discordID);
+      } catch (e) {
+        member = 'Left Discord Server';
+      }
       if (member) {
         this.DiscordUsers.upsert({
           discordID: row.discordID,

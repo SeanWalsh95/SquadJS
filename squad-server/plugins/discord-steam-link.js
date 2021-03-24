@@ -110,7 +110,7 @@ export default class DiscordSteamLink extends DiscordBasePlugin {
     if (this.options.fetchDisplanameInterval)
       this.updateDisplaynameInterval = setInterval(async () => {
         this.updateDisplaynames();
-      }, 1000 * 60);
+      }, 1000 * this.options.fetchDisplanameInterval);
     if (this.options.verifySteamID)
       this.sendUserTokenInterval = setInterval(async () => {
         this.sendUserToken();

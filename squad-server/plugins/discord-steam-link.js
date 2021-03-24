@@ -203,6 +203,7 @@ export default class DiscordSteamLink extends DiscordBasePlugin {
       if (member) {
         this.DiscordUsers.upsert({
           discordID: row.discordID,
+          steamID: row.steamID,
           discordDisplayname: member.displayName
         });
       } else {

@@ -27,9 +27,9 @@ export default class DiscordSteamLink extends DiscordBasePlugin {
         description: 'The Sequelize connector to log server information to.',
         default: 'mysql'
       },
-      channelID: {
+      serverID: {
         required: true,
-        description: 'The channelID that users are directed to post their SteamIDs to becides DMs.',
+        description: 'Discord server ID to pull nicknames from.',
         default: '',
         example: '667741905228136459'
       },
@@ -58,6 +58,9 @@ export default class DiscordSteamLink extends DiscordBasePlugin {
         discordID: {
           type: DataTypes.STRING,
           primaryKey: true
+        },
+        discordDisplayname: {
+          type: DataTypes.STRING
         },
         discordTag: {
           type: DataTypes.STRING
@@ -91,6 +94,7 @@ export default class DiscordSteamLink extends DiscordBasePlugin {
   }
 
   async prepareToMount() {
+    this.guild = await this.options.discordClient.guilds.fetch(this.options.serverID);
     this.SteamUsers = this.options.database.models.DBLog_SteamUsers;
     await this.DiscordUsers.sync();
   }
@@ -113,9 +117,8 @@ export default class DiscordSteamLink extends DiscordBasePlugin {
     // dont respond to bots
     if (message.author.bot) return;
 
-    // only respond to channel in options and DMs
-    if (!(message.channel.id === this.options.channelID) && !(message.channel.type === 'dm'))
-      return;
+    // only respond to DMs
+    if (!(message.channel.type === 'dm')) return;
 
     // check is message is verifacation message
     if (this.options.verifySteamID && message.content.match(tokenRgx)) {
@@ -148,11 +151,14 @@ export default class DiscordSteamLink extends DiscordBasePlugin {
         steamID = steamIdMatch.groups.steamID;
       }
 
-      // find or creat initial user entry
+      const guildMember = await this.guild.members.fetch(message.author.id);
+
+      // find or create initial user entry
       const user = await this.DiscordUsers.findOrCreate({
         where: { discordID: message.author.id },
         defaults: {
           steamID: steamID,
+          discordDisplayname: guildMember.displayName,
           discordTag: message.author.tag,
           token: this.generateToken()
         }
@@ -162,10 +168,18 @@ export default class DiscordSteamLink extends DiscordBasePlugin {
       if (user && !user.verified) {
         await this.DiscordUsers.upsert({
           discordID: message.author.id,
+          discordDisplayname: guildMember.displayName,
           steamID: steamID,
           discordTag: message.author.tag
         });
+      } else {
+        await this.DiscordUsers.upsert({
+          discordID: message.author.id,
+          discordDisplayname: guildMember.displayName,
+          discordTag: message.author.tag
+        });
       }
+
       this.verbose(1, `Added SteamID for ${message.author.tag}`);
       message.react('👍');
       if (this.options.verifySteamID && !user.verified)

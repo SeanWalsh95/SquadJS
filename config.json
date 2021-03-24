@@ -193,7 +193,7 @@
       "enabled": false,
       "discordClient": "discord",
       "database": "mysql",
-      "channelID": "",
+      "serverID": "",
       "verifySteamID": false
     },
     {

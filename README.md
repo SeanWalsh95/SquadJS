@@ -816,9 +816,9 @@ Grafana:
            <p>The Sequelize connector to log server information to.</p>
            <h6>Default</h6>
            <pre><code>mysql</code></pre></li>
-<li><h4>channelID (Required)</h4>
+<li><h4>serverID (Required)</h4>
            <h6>Description</h6>
-           <p>The channelID that users are directed to post their SteamIDs to becides DMs.</p>
+           <p>Discord server ID to pull nicknames from.</p>
            <h6>Default</h6>
            <pre><code></code></pre></li><h6>Example</h6>
            <pre><code>667741905228136459</code></pre>

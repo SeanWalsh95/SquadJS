@@ -100,7 +100,6 @@ export default class DiscordSteamLink extends DiscordBasePlugin {
   }
 
   async prepareToMount() {
-    this.guild = await this.options.discordClient.guilds.fetch(this.options.serverID);
     this.SteamUsers = this.options.database.models.DBLog_SteamUsers;
     await this.DiscordUsers.sync();
   }
@@ -191,12 +190,19 @@ export default class DiscordSteamLink extends DiscordBasePlugin {
   }
 
   async updateDisplaynames() {
+    const guild = await this.options.discordClient.guilds.fetch(this.options.serverID);
+
+    this.verbose(1, `Updating Displaynames...`);
     for (const row of await this.DiscordUsers.findAll()) {
-      const member = await this.guild.members.fetch(row.discordID);
-      await this.DiscordUsers.upsert({
-        discordID: row.discordID,
-        discordDisplayname: member.displayName
-      });
+      const member = await guild.members.fetch(row.discordID);
+      if (member) {
+        this.DiscordUsers.upsert({
+          discordID: row.discordID,
+          discordDisplayname: member.displayName
+        });
+      } else {
+        this.verbose(1, `Unknown Member ${row.discordTag}`);
+      }
     }
   }
 

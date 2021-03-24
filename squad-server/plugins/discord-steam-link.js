@@ -194,21 +194,19 @@ export default class DiscordSteamLink extends DiscordBasePlugin {
 
     this.verbose(1, `Updating Displaynames...`);
     for (const row of await this.DiscordUsers.findAll()) {
-      let member = null;
+      let displayName = null;
       try {
-        member = await guild.members.fetch(row.discordID);
+        const member = await guild.members.fetch(row.discordID);
+        displayName = member.displayName;
       } catch (e) {
-        member = 'Left Discord Server';
+        displayName = '__NOT_IN_SERVER__';
       }
-      if (member) {
-        this.DiscordUsers.upsert({
-          discordID: row.discordID,
-          steamID: row.steamID,
-          discordDisplayname: member.displayName
-        });
-      } else {
-        this.verbose(1, `Unknown Member ${row.discordTag}`);
-      }
+
+      this.DiscordUsers.upsert({
+        discordID: row.discordID,
+        steamID: row.steamID,
+        discordDisplayname: displayName
+      });
     }
   }
 

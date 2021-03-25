@@ -127,7 +127,7 @@ export default class DiscordSeedingRewards extends DiscordBasePlugin {
       const existing = await this.Redemptions.findOne({ where: { discordID: message.author.id } });
       if (existing) {
         const timeRemaining = new Date(existing.expires).toDateString();
-        message.reply(`You already have an active reward\n Expires: ${timeRemaining}`);
+        message.reply(`You already have an active reward\n Expires: \`${timeRemaining}\``);
         return;
       }
       if (userRow.points >= this.pointRewardRatio.points) {

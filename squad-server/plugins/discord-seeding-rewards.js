@@ -127,8 +127,6 @@ export default class DiscordSeedingRewards extends DiscordBasePlugin {
     }
 
     if (message.content.toLowerCase().startsWith('!redeem')) {
-      if (this.options.noRewards) return;
-
       const existing = await this.Redemptions.findOne({ where: { discordID: message.author.id } });
       if (existing) {
         message.reply('you already have an active reward');

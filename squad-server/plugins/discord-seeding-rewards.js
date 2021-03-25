@@ -126,7 +126,7 @@ export default class DiscordSeedingRewards extends DiscordBasePlugin {
     if (message.content.toLowerCase().startsWith('!redeem')) {
       const existing = await this.Redemptions.findOne({ where: { discordID: message.author.id } });
       if (existing) {
-        const timeRemaining = Date.now() - existing.expires;
+        const timeRemaining = this.formatSeconds(Date.now() - existing.expires);
         message.reply(`You already have an active reward\n You have ${timeRemaining} remaining`);
         return;
       }

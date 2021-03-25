@@ -129,7 +129,11 @@ export default class DiscordSeedingRewards extends DiscordBasePlugin {
     if (message.content.toLowerCase().startsWith('!redeem')) {
       const existing = await this.Redemptions.findOne({ where: { discordID: message.author.id } });
       if (existing) {
-        message.reply('you already have an active reward');
+        message.reply(
+          `You already have an active reward\n You have ${this.formatSeconds(
+            Date.now() - existing.expires
+          )} remaining`
+        );
         return;
       }
       if (userRow.points >= this.pointRewardRatio.points) {
@@ -152,7 +156,7 @@ export default class DiscordSeedingRewards extends DiscordBasePlugin {
           `${message.author.tag} redeemed "${rewardRole.name}" for ${this.pointRewardRatio.points}`
         );
         message.reply(
-          `congratulations, your week of whitelist starts today\n \`note: new additions to whitelist only apply after a map roataion\``
+          `Congratulations, your week of whitelist starts today\n \`note: new additions to whitelist only apply after a map roataion\``
         );
       } else {
         message.reply(`You dont have enough seeding time to redeem a reward`);

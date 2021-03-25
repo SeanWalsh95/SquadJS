@@ -164,7 +164,7 @@ export default class DiscordSeedingRewards extends DiscordBasePlugin {
         message.reply(
           `you have seeded on our server for ${this.formatSeconds(
             userRow.totalSeedTime
-          )}\n**you are eligible for whitelist from seeding** use \`!redeem\` to get a week of whitelist`
+          )}\n\n**You are eligible for whitelist from seeding**\nUse \`!redeem\` to recieve a week of whitelist`
         );
       } else {
         message.reply(

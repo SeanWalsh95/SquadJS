@@ -91,10 +91,7 @@ export default class DiscordSeedingRewards extends DiscordBasePlugin {
 
   async mount() {
     this.options.discordClient.on('message', this.onMessage);
-    this.clearExpiredRewardsInterval = setInterval(
-      this.clearExpiredRewards,
-      1000 * 60 * 0.25 /* 15 */
-    );
+    this.clearExpiredRewardsInterval = setInterval(this.clearExpiredRewards, 1000 * 60 * 15);
   }
 
   async unmount() {
@@ -129,11 +126,8 @@ export default class DiscordSeedingRewards extends DiscordBasePlugin {
     if (message.content.toLowerCase().startsWith('!redeem')) {
       const existing = await this.Redemptions.findOne({ where: { discordID: message.author.id } });
       if (existing) {
-        message.reply(
-          `You already have an active reward\n You have ${this.formatSeconds(
-            Date.now() - existing.expires
-          )} remaining`
-        );
+        const timeRemaining = Date.now() - existing.expires;
+        message.reply(`You already have an active reward\n You have ${timeRemaining} remaining`);
         return;
       }
       if (userRow.points >= this.pointRewardRatio.points) {

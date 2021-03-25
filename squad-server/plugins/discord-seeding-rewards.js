@@ -200,6 +200,6 @@ export default class DiscordSeedingRewards extends DiscordBasePlugin {
     display.push(h > 0 ? h + (h === 1 ? ' hour' : ' hours') : '');
     display.push(m > 0 ? m + (m === 1 ? ' minute' : ' minutes') : '');
     display.push(s > 0 ? s + (s === 1 ? ' second' : ' seconds') : '');
-    return display.join(', ');
+    return display.filter((d) => d !== '').join(', ');
   }
 }

@@ -106,10 +106,10 @@ export default class DiscordAwnAutoWhitelist extends DiscordBasePlugin {
           type: DataTypes.STRING,
           allowNull: false
         },
-        addedBy: {
+        reason: {
           type: DataTypes.STRING
         },
-        reason: {
+        addedBy: {
           type: DataTypes.STRING
         }
       },
@@ -137,14 +137,6 @@ export default class DiscordAwnAutoWhitelist extends DiscordBasePlugin {
     clearInterval(this.requestMissingSteamIDsInterval);
   }
 
-  /** returns awnListID if a given member has the approprate roles, otherwise returns null
-   *   @param {Object} member - discord.js member object  */
-  getMemberListID(member) {
-    for (const [roleID, roleListID] of Object.entries(this.options.whitelistRoles))
-      if (member._roles.includes(roleID)) return roleListID;
-    return null;
-  }
-
   async pruneUsers() {
     this.verbose(1, `Pruning Users...`);
 
@@ -160,12 +152,9 @@ export default class DiscordAwnAutoWhitelist extends DiscordBasePlugin {
 
     for (const userRow of userRows) {
       const member = await this.guild.members.fetch(userRow.discordID);
-      const listID = this.getMemberListID(member);
-      if (listID === null) {
-        membersToPrune.push(userRow);
-        continue;
-      }
-      if (listID !== userRow.awnListID) {
+
+      // member no longer has role that was reason for whitelist
+      if (!member._roles.includes(userRow.reason)) {
         membersToPrune.push(userRow);
         continue;
       }
@@ -209,15 +198,15 @@ export default class DiscordAwnAutoWhitelist extends DiscordBasePlugin {
           continue;
         }
 
-        const listID = await this.getMemberListID(member);
+        const listID = this.options.whitelistRoles[role.id];
         if (!listID) continue;
 
         const entry = new ListEntry();
-        entry.addedBy = 'Role Interval';
+        entry.addedBy = `Role: ${role.name}`;
         entry.member = member;
         entry.steamID = userData.steamID;
         entry.listID = listID;
-        entry.reason = `Role: ${role.name}`;
+        entry.reason = role.id;
         const res = await this.addAdmin(entry);
 
         if (res.success) this.verbose(2, `Added ${member.displayName} to whitelist`);

@@ -822,6 +822,12 @@ Grafana:
            <h6>Default</h6>
            <pre><code></code></pre></li><h6>Example</h6>
            <pre><code>667741905228136459</code></pre>
+<li><h4>channelID</h4>
+           <h6>Description</h6>
+           <p>Discord Channel ID to watch for steam 64 posts</p>
+           <h6>Default</h6>
+           <pre><code></code></pre></li><h6>Example</h6>
+           <pre><code>667741905228136459</code></pre>
 <li><h4>fetchDisplanameInterval</h4>
            <h6>Description</h6>
            <p>interval of time between pulling displaynames, null to disable</p>

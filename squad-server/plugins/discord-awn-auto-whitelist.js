@@ -140,8 +140,6 @@ export default class DiscordAwnAutoWhitelist extends DiscordBasePlugin {
   async pruneUsers() {
     this.verbose(1, `Pruning Users...`);
 
-    const membersToPrune = [];
-
     const userRows = await this.db.query(
       `SELECT * FROM DiscordSteam_Users u 
       INNER JOIN (
@@ -154,16 +152,11 @@ export default class DiscordAwnAutoWhitelist extends DiscordBasePlugin {
       const member = await this.guild.members.fetch(userRow.discordID);
 
       // member no longer has role that was reason for whitelist
-      if (!member._roles.includes(userRow.reason)) {
-        membersToPrune.push(userRow);
-        continue;
+      if (!member._roles.includes(userRow.roldID)) {
+        const res = await this.removeAdmin(member.discordID, member.awnListID, member.awnAdminID);
+        if (res) this.verbose(1, `Pruned user ${member.discordTag}(${member.steamID})`);
+        else this.verbose(1, `Failed to prune ${member.discordTag}(${member.steamID})`);
       }
-    }
-
-    for (const member of membersToPrune) {
-      const res = await this.removeAdmin(member.discordID, member.awnListID, member.awnAdminID);
-      if (res) this.verbose(1, `Pruned user ${member.discordTag}(${member.steamID})`);
-      else this.verbose(1, `Failed to prune ${member.discordTag}(${member.steamID})`);
     }
   }
 

@@ -194,6 +194,7 @@
       "discordClient": "discord",
       "database": "mysql",
       "serverID": "",
+      "channelID": "",
       "fetchDisplanameInterval": null,
       "verifySteamID": false
     },

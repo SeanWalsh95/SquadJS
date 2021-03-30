@@ -152,10 +152,14 @@ export default class DiscordAwnAutoWhitelist extends DiscordBasePlugin {
       const member = await this.guild.members.fetch(userRow.discordID);
 
       // member no longer has role that was reason for whitelist
-      if (!member._roles.includes(userRow.roldID)) {
-        const res = await this.removeAdmin(member.discordID, member.awnListID, member.awnAdminID);
-        if (res) this.verbose(1, `Pruned user ${member.discordTag}(${member.steamID})`);
-        else this.verbose(1, `Failed to prune ${member.discordTag}(${member.steamID})`);
+      if (!member._roles.includes(userRow.roleID)) {
+        const res = await this.removeAdmin(
+          userRow.discordID,
+          userRow.awnListID,
+          userRow.awnAdminID
+        );
+        if (res) this.verbose(1, `Pruned user ${userRow.discordTag}(${userRow.steamID})`);
+        else this.verbose(1, `Failed to prune ${userRow.discordTag}(${userRow.steamID})`);
       }
     }
   }

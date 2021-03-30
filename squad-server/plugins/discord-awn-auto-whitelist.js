@@ -190,7 +190,7 @@ export default class DiscordAwnAutoWhitelist extends DiscordBasePlugin {
           this.missingSteamIDs[member.id] = null;
           continue;
         }
-        if (userData.awnAdminID) {
+        if (userData.awnAdminID && userData.roleID === role.id) {
           this.verbose(3, `${member.displayName} already in list`);
           continue;
         }

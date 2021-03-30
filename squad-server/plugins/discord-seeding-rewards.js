@@ -150,7 +150,7 @@ export default class DiscordSeedingRewards extends DiscordBasePlugin {
           `${message.author.tag} redeemed "${rewardRole.name}" for ${this.pointRewardRatio.points}`
         );
         message.reply(
-          `Congratulations, your week of whitelist starts today\n \`note: new additions to whitelist only apply after a map roataion\``
+          `Your week of whitelist starts today\n \`note:\`whitelist changes only apply after a map roataion`
         );
       } else {
         message.reply(`You dont have enough seeding time to redeem a reward`);

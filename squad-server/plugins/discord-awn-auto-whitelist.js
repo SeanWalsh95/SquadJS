@@ -5,17 +5,17 @@ const { DataTypes } = Sequelize;
 
 /**
  * @typedef {Object} ListEntry
- * @property {String} addedBy - Source of the whitelist request
- * @property {String} member - DiscordJS Member object of the user looking for whitelist
+ * @property {Object} member  - DiscordJS Member object of the user looking for whitelist
  * @property {String} steamID - Steam64ID of to be added to the whitelist
- * @property {String} listID - AWN Admin List ID
- * @property {String} reason - The reason the user was added
+ * @property {String} roleID  - Discord RoleID that was the reason for the whitelist
+ * @property {String} listID  - AWN Admin List ID
+ * @property {String} reason  - A description for the reason the user was added
  */
 class ListEntry {
   constructor() {
-    this.addedBy = 'unknown';
     this.member = null;
     this.steamID = null;
+    this.roleID = 'unknown';
     this.listID = null;
     this.reason = null;
   }
@@ -109,7 +109,7 @@ export default class DiscordAwnAutoWhitelist extends DiscordBasePlugin {
         reason: {
           type: DataTypes.STRING
         },
-        addedBy: {
+        roleID: {
           type: DataTypes.STRING
         }
       },
@@ -202,11 +202,11 @@ export default class DiscordAwnAutoWhitelist extends DiscordBasePlugin {
         if (!listID) continue;
 
         const entry = new ListEntry();
-        entry.addedBy = `Role: ${role.name}`;
+        entry.roleID = role.id;
         entry.member = member;
         entry.steamID = userData.steamID;
         entry.listID = listID;
-        entry.reason = role.id;
+        entry.reason = `${role.name}`;
         const res = await this.addAdmin(entry);
 
         if (res.success) this.verbose(2, `Added ${member.displayName} to whitelist`);
@@ -242,8 +242,8 @@ export default class DiscordAwnAutoWhitelist extends DiscordBasePlugin {
         discordID: entry.member.id,
         awnAdminID: res.data.id,
         awnListID: entry.listID,
-        addedBy: entry.addedBy,
-        reason: entry.reason
+        reason: entry.reason,
+        roleID: entry.roleID
       });
     }
     return res;

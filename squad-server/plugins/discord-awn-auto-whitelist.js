@@ -180,7 +180,7 @@ export default class DiscordAwnAutoWhitelist extends DiscordBasePlugin {
           `SELECT * FROM DiscordSteam_Users u 
           LEFT JOIN (
             SELECT * from AutoWL_Entries 
-          ) s ON s.discordID = u.discordID WHERE u.discordID = ${memberID}`,
+          ) s ON s.discordID = u.discordID WHERE u.discordID = ${memberID} AND s.roleID = ${role.id}`,
           { type: Sequelize.QueryTypes.SELECT }
         );
         const userData = rawQuerRes[0];

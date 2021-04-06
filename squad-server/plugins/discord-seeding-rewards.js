@@ -172,9 +172,28 @@ export default class DiscordSeedingRewards extends DiscordBasePlugin {
 
   async clearExpiredRewards() {
     this.verbose(1, `Clearing Expired Rewards...`);
-    const expired = await this.Redemptions.findAll({
+
+    const expired = [];
+
+    // find expored rewards stuck in db
+    const queryResp = await this.db.query(
+      `SELECT e.discordID, e.roleID, r.expires FROM AutoWL_Entries e
+      LEFT JOIN (
+        SELECT discordID, roleID, expires from DiscordRewards_Redemptions 
+      ) r ON e.discordID = r.discordID WHERE e.roleID = ${this.options.discordRewardRoleID} AND r.expires IS NULL`,
+      { type: Sequelize.QueryTypes.SELECT }
+    );
+    expired.concat(
+      queryResp.map((r) => {
+        return Object.assign(r, { serverID: this.options.serverID });
+      })
+    );
+
+    const expiredTimeout = await this.Redemptions.findAll({
       where: { expires: { [Sequelize.Op.lte]: Date.now() } }
     });
+    expired.concat(expiredTimeout);
+
     for (const e of expired) {
       const guild = await this.discord.guilds.fetch(e.serverID);
       const member = await guild.members.fetch(e.discordID);

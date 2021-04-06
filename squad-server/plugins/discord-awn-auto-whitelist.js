@@ -167,41 +167,55 @@ export default class DiscordAwnAutoWhitelist extends DiscordBasePlugin {
   /** This requires the discord bot to have Privileged Gateway - SERVER MEMBERS INTENT  enabled */
   async updateEntrysFromRoles() {
     this.missingSteamIDs = {};
-    this.verbose(1, `Updating role rewards...`);
+    let queryRes = null;
+
+    queryRes = await this.db.query(`SELECT discordID, steamID FROM DiscordSteam_Users`, {
+      type: Sequelize.QueryTypes.SELECT
+    });
+    const discordToSteamIdMap = {};
+    for (const row of queryRes) {
+      discordToSteamIdMap[row.discordID] = row.steamID;
+    }
+
+    const roles = {};
     for (const roleID of Object.keys(this.options.whitelistRoles)) {
-      const role = await this.guild.roles.fetch(roleID);
-      if (!role) continue;
-      this.verbose(2, `Searching "${role.name}"...`);
+      roles[roleID] = await this.guild.roles.fetch(roleID);
+    }
 
-      for (const [memberID, member] of await this.guild.members.fetch()) {
-        if (!member._roles.includes(role.id)) continue;
+    const existingWlEntrys = {};
+    queryRes = await this.WhitelistEntries.findAll({ attributes: ['discordID', 'roleID'] });
+    for (const wlRow of queryRes) {
+      if (wlRow.discordID in existingWlEntrys) existingWlEntrys[wlRow.discordID].push(wlRow.roleID);
+      else existingWlEntrys[wlRow.discordID] = [wlRow.roleID];
+    }
 
-        const rawQuerRes = await this.db.query(
-          `SELECT * FROM DiscordSteam_Users u 
-          LEFT JOIN (
-            SELECT * from AutoWL_Entries 
-          ) s ON s.discordID = u.discordID WHERE u.discordID = ${memberID} AND s.roleID = ${role.id}`,
-          { type: Sequelize.QueryTypes.SELECT }
-        );
-        const userData = rawQuerRes[0];
+    this.verbose(1, `Updating role rewards...`);
+    for (const [memberID, member] of await this.guild.members.fetch()) {
+      if (!Object.keys(roles).some((rID) => member._roles.includes(rID))) continue;
 
-        if (!userData) {
-          this.verbose(3, `${member.displayName} not registered`);
-          this.missingSteamIDs[member.id] = null;
-          continue;
-        }
-        if (userData.awnAdminID && userData.roleID === role.id) {
+      const steamIdLokup = discordToSteamIdMap[memberID];
+      if (!steamIdLokup) {
+        this.verbose(3, `${member.displayName} not registered`);
+        this.missingSteamIDs[member.id] = null;
+        continue;
+      }
+
+      for (const [roleID, role] of roles) {
+        const userRoleEntry = await this.WhitelistEntries.findOne({
+          where: { discordID: memberID, roleID: role.id }
+        });
+        if (memberID in existingWlEntrys && userRoleEntry[memberID].includes(roleID)) {
           this.verbose(3, `${member.displayName} already in list`);
           continue;
         }
 
-        const listID = this.options.whitelistRoles[role.id];
+        const listID = this.options.whitelistRoles[roleID];
         if (!listID) continue;
 
         const entry = new ListEntry();
         entry.roleID = role.id;
         entry.member = member;
-        entry.steamID = userData.steamID;
+        entry.steamID = steamIdLokup;
         entry.listID = listID;
         entry.reason = `${role.name}`;
         const res = await this.addAdmin(entry);

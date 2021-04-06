@@ -96,11 +96,11 @@ export default class DiscordAwnAutoWhitelist extends DiscordBasePlugin {
       {
         discordID: {
           type: DataTypes.STRING,
-          primaryKey: true
+          allowNull: false
         },
         awnAdminID: {
           type: DataTypes.STRING,
-          allowNull: false
+          primaryKey: true
         },
         awnListID: {
           type: DataTypes.STRING,
@@ -177,11 +177,6 @@ export default class DiscordAwnAutoWhitelist extends DiscordBasePlugin {
       discordToSteamIdMap[row.discordID] = row.steamID;
     }
 
-    const roles = {};
-    for (const roleID of Object.keys(this.options.whitelistRoles)) {
-      roles[roleID] = await this.guild.roles.fetch(roleID);
-    }
-
     const existingWlEntrys = {};
     queryRes = await this.WhitelistEntries.findAll({ attributes: ['discordID', 'roleID'] });
     for (const wlRow of queryRes) {
@@ -191,25 +186,27 @@ export default class DiscordAwnAutoWhitelist extends DiscordBasePlugin {
 
     this.verbose(1, `Updating role rewards...`);
     for (const [memberID, member] of await this.guild.members.fetch()) {
-      if (!Object.keys(roles).some((rID) => member._roles.includes(rID))) continue;
+      if (!Object.keys(this.options.whitelistRoles).some((rID) => member._roles.includes(rID)))
+        continue;
 
       const steamIdLokup = discordToSteamIdMap[memberID];
       if (!steamIdLokup) {
-        this.verbose(3, `${member.displayName} not registered`);
+        this.verbose(1, `${member.displayName} (${member.id}) not registered`);
         this.missingSteamIDs[member.id] = null;
         continue;
       }
 
-      for (const [roleID, role] of roles) {
-        const userRoleEntry = await this.WhitelistEntries.findOne({
-          where: { discordID: memberID, roleID: role.id }
-        });
-        if (memberID in existingWlEntrys && userRoleEntry[memberID].includes(roleID)) {
-          this.verbose(3, `${member.displayName} already in list`);
+      for (const roleID of Object.keys(this.options.whitelistRoles)) {
+        if (!member._roles.includes(roleID)) continue;
+
+        const role = await this.guild.roles.fetch(roleID);
+
+        if (memberID in existingWlEntrys && existingWlEntrys[memberID].includes(role.id)) {
+          this.verbose(3, `${member.displayName} already in ${role.name}`);
           continue;
         }
 
-        const listID = this.options.whitelistRoles[roleID];
+        const listID = this.options.whitelistRoles[role.id];
         if (!listID) continue;
 
         const entry = new ListEntry();
@@ -220,7 +217,7 @@ export default class DiscordAwnAutoWhitelist extends DiscordBasePlugin {
         entry.reason = `${role.name}`;
         const res = await this.addAdmin(entry);
 
-        if (res.success) this.verbose(2, `Added ${member.displayName} to whitelist`);
+        if (res.success) this.verbose(2, `Added ${member.displayName} to ${role.name}`);
         else this.verbose(1, `ERROR Adding ${JSON.stringify(entry)}`);
       }
     }

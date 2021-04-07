@@ -48,4 +48,53 @@ export default class BasePlugin {
   verbose(...args) {
     Logger.verbose(this.constructor.name, ...args);
   }
+
+  // event functions
+  async onChatMessage(event) {}
+
+  async onChatCommand(command, event) {}
+
+  async onAdminCameraPossesed(event) {}
+
+  async onAdminCameraUnpossesed(event) {}
+
+  async onPlayerWarned(event) {}
+
+  async onPlayerKicked(event) {}
+
+  async onPlayerBanned(event) {}
+
+  async onPlayerConnected(event) {}
+
+  async onPlayerDisconnected(event) {}
+
+  async onPlayerDamaged(event) {}
+
+  async onPlayerWounded(event) {}
+
+  async onPlayerDied(event) {}
+
+  async onPlayerRevived(event) {}
+
+  async onPlayerPosses(event) {}
+
+  async onPlayerUnposses(event) {}
+
+  async onPlayerTeamChanged(event) {}
+
+  async onPlayerSquadChanged(event) {}
+
+  async onPlayerListUpdated() {}
+
+  async onLayereventrmationUpdated() {}
+
+  async onA2SUpdated() {}
+
+  async onAdminBroadcast(event) {}
+
+  async onNewGame(event) {}
+
+  async onDeployabeDamaged(event) {}
+
+  async onTickRate(event) {}
 }

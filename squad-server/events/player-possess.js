@@ -2,11 +2,11 @@ import BaseEvent, { EventSource } from 'core/base-classes/event';
 
 /**
  * PlayerPossess Event
+ * @typedef {BaseEvent} PlayerPossess
  * @property {string} chainID - TODO
  * @property {SquadPlayer} player - the player that possesed the item
  * @property {string} possessClassname - the classname of the item that was possesed
  */
-
 export default class PlayerPossess extends BaseEvent {
   constructor(server, time, data) {
     super(server, time);

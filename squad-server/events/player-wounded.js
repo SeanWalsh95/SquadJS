@@ -2,10 +2,10 @@ import BaseEvent, { EventSource } from 'core/base-classes/event';
 
 /**
  * PlayerWounded Event
+ * @typedef {BaseEvent} PlayerWounded
  * @property {SquadPlayer} victim - The player that was incapacitated
  * @property {SquadPlayer} attacker - The attacking player incapacitated the victim player
  */
-
 export default class PlayerWounded extends BaseEvent {
   constructor(server, time, data) {
     super(server, time);

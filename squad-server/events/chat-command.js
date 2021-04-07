@@ -3,10 +3,10 @@ import ChatMessage from './ChatMessage';
 
 /**
  * ChatCommand Event
+ * @typedef {ChatMessage} ChatCommand
  * @property {string} command - The command that was used EX. !admin
  * @property {string} params - The parameters sent to the command EX. !admin <parameters>
  */
-
 export default class ChatCommand extends ChatMessage {
   constructor(server, time, data) {
     super(server, time, data);

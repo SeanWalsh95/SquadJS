@@ -9,6 +9,7 @@ export const EventSource = Object.freeze({
 
 /**
  * BaseEvent serves as the core class to be inherited by all other events
+ * @typedef {Object} BaseEvent
  * @property {Server} server - the server object
  * @property {Date} time - a Date object representing a timestamp
  * @property {EventSource} source - the origin of the event

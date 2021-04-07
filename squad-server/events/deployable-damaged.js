@@ -2,6 +2,7 @@ import BaseEvent, { EventSource } from 'core/base-classes/event';
 
 /**
  * DeployableDamaged Event
+ * @typedef {BaseEvent} DeployableDamaged
  * @property {string} chainID - TODO: Document this
  * @property {string} deployable - deployable that was damaged
  * @property {string} weapon - Weapon used to dam
@@ -10,7 +11,6 @@ import BaseEvent, { EventSource } from 'core/base-classes/event';
  * @property {string} healthRemaining - Remaining health of deployable
  * @property {string} player - the player that did the damage to the deployable
  */
-
 export default class DeployableDamaged extends BaseEvent {
   constructor(server, time, data) {
     super(server, time);

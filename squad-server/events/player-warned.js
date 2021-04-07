@@ -2,10 +2,10 @@ import BaseEvent, { EventSource } from 'core/base-classes/event';
 
 /**
  * PlayerWarned Event
+ * @typedef {BaseEvent} PlayerWarned
  * @property {SquadPlayer} player - the player that was warned
  * @property {string} message - the message that was sent to the player as a warning
  */
-
 export default class PlayerWarned extends BaseEvent {
   constructor(server, time, data) {
     super(server, time);

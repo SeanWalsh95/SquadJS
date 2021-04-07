@@ -2,11 +2,11 @@ import BaseEvent, { EventSource } from 'core/base-classes/event';
 
 /**
  * NewGame Event
+ * @typedef {BaseEvent} NewGame
  *
  * TODO: Finish this Event
  *
  */
-
 export default class NewGame extends BaseEvent {
   constructor(server, time, data) {
     super(server, time);

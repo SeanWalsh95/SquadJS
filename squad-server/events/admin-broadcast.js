@@ -8,7 +8,7 @@ import BaseEvent, { EventSource } from 'core/base-classes/event';
  * @property {(SquadPlayer|String)} from - either Player object if from game or "RCON" if via RCON
  */
 
-export class AdminBroadcast extends BaseEvent {
+export default class AdminBroadcast extends BaseEvent {
   constructor(server, time, data) {
     super(server, time);
     this.source = EventSource.LOG;

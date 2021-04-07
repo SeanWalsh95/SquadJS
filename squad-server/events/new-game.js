@@ -8,7 +8,7 @@ import BaseEvent, { EventSource } from 'core/base-classes/event';
  *
  */
 
-export class NewGame extends BaseEvent {
+export default class NewGame extends BaseEvent {
   constructor(server, time, data) {
     super(server, time);
     this.source = EventSource.LOG;

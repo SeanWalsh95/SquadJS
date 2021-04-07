@@ -7,7 +7,7 @@ import BaseEvent, { EventSource } from 'core/base-classes/event';
  * @property {string} oldTeamID - the id of the team the player switched from
  */
 
-export class PlayerTeamChange extends BaseEvent {
+export default class PlayerTeamChange extends BaseEvent {
   constructor(server, time, data) {
     super(server, time);
     this.source = EventSource.RCON;

@@ -7,7 +7,7 @@ import BaseEvent, { EventSource } from 'core/base-classes/event';
  * @property {float} tickRate - Server Tickrate
  */
 
-export class TickRate extends BaseEvent {
+export default class TickRate extends BaseEvent {
   constructor(server, time, data) {
     super(server, time);
     this.source = EventSource.LOG;

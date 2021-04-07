@@ -7,7 +7,7 @@ import BaseEvent, { EventSource } from 'core/base-classes/event';
  * @property {SquadPlayer} attacker - The player that killed the dead player
  */
 
-export class PlayerDied extends BaseEvent {
+export default class PlayerDied extends BaseEvent {
   constructor(server, time, data) {
     super(server, time);
     this.source = EventSource.LOG;

@@ -8,7 +8,7 @@ import ChatMessage from './ChatMessage';
  * @property {string} params - The parameters sent to the command EX. !admin <parameters>
  */
 
-export class ChatCommand extends ChatMessage {
+export default class ChatCommand extends ChatMessage {
   constructor(server, time, data) {
     super(server, time, data);
     this.source = EventSource.RCON;

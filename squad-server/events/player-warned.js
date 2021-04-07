@@ -7,7 +7,7 @@ import BaseEvent, { EventSource } from 'core/base-classes/event';
  * @property {string} message - the message that was sent to the player as a warning
  */
 
-export class PlayerWarned extends BaseEvent {
+export default class PlayerWarned extends BaseEvent {
   constructor(server, time, data) {
     super(server, time);
     this.source = EventSource.RCON;

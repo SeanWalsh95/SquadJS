@@ -8,7 +8,7 @@ import BaseEvent, { EventSource } from 'core/base-classes/event';
  * @property {SquadPlayer} reviver - The player that revived the incapacitated player
  */
 
-export class PlayerRevived extends BaseEvent {
+export default class PlayerRevived extends BaseEvent {
   constructor(server, time, data) {
     super(server, time);
     this.source = EventSource.LOG;

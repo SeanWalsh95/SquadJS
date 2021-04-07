@@ -12,7 +12,7 @@ import BaseEvent, { EventSource } from 'core/base-classes/event';
  * @property {string} player - the player that did the damage to the deployable
  */
 
-export class DeployableDamaged extends BaseEvent {
+export default class DeployableDamaged extends BaseEvent {
   constructor(server, time, data) {
     super(server, time);
     this.source = EventSource.LOG;

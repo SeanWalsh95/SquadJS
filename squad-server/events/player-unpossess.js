@@ -8,7 +8,7 @@ import BaseEvent, { EventSource } from 'core/base-classes/event';
  * @property {string} unpossessClassname - the classname of the item that was possesed
  */
 
-export class PlayerUnpossess extends BaseEvent {
+export default class PlayerUnpossess extends BaseEvent {
   constructor(server, time, data) {
     super(server, time);
     this.source = EventSource.LOG;

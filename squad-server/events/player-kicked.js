@@ -7,7 +7,7 @@ import BaseEvent, { EventSource } from 'core/base-classes/event';
  * @property {string} reason - the message that was sent to the player as a reason for being kicked
  */
 
-export class PlayerKicked extends BaseEvent {
+export default class PlayerKicked extends BaseEvent {
   constructor(server, time, data) {
     super(server, time);
     this.source = EventSource.RCON;

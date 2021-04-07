@@ -7,7 +7,7 @@ import BaseEvent, { EventSource } from 'core/base-classes/event';
  * @property {string} interval - the ammount of time the player was banned for
  */
 
-export class PlayerBanned extends BaseEvent {
+export default class PlayerBanned extends BaseEvent {
   constructor(server, time, data) {
     super(server, time);
     this.source = EventSource.RCON;

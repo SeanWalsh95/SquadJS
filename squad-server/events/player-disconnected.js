@@ -6,7 +6,7 @@ import BaseEvent, { EventSource } from 'core/base-classes/event';
  * @property {SquadPlayer} player - The player that disconnected
  */
 
-export class PlayerDisconnected extends BaseEvent {
+export default class PlayerDisconnected extends BaseEvent {
   constructor(server, time, data) {
     super(server, time);
     this.source = EventSource.LOG;

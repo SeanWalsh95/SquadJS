@@ -7,7 +7,7 @@ import BaseEvent, { EventSource } from 'core/base-classes/event';
  * @property {SquadPlayer} attacker - The attacking player incapacitated the victim player
  */
 
-export class PlayerWounded extends BaseEvent {
+export default class PlayerWounded extends BaseEvent {
   constructor(server, time, data) {
     super(server, time);
     this.source = EventSource.LOG;

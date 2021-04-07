@@ -5,7 +5,7 @@ import BaseEvent, { EventSource } from 'core/base-classes/event';
  * @property {SquadPlayer} player - The player that exited admincam
  */
 
-export class UnpossessedAdminCamera extends BaseEvent {
+export default class UnpossessedAdminCamera extends BaseEvent {
   constructor(server, time, data) {
     super(server, time);
     this.source = EventSource.RCON;

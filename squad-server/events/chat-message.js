@@ -2,7 +2,6 @@ import BaseEvent, { EventSource } from 'core/base-classes/event';
 
 /**
  * ChatMessage Event
- * @typedef {BaseEvent}
  * @property {boolean} isCommand - Boolean that is true when the message matches a command ex. !admin
  * @property {string} chatChannel - The channel the message was sent in
  * @property {SquadPlayer} player - The player that sent the message
@@ -14,7 +13,6 @@ export default class ChatMessage extends BaseEvent {
     super(server, time);
     this.source = EventSource.RCON;
 
-    this.isCommand = data.message.match(/!([^ ]+) ?(.*)/);
     this.chatChannel = data.chat;
     this.player = data.player;
     this.message = data.message;

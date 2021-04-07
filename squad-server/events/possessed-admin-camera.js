@@ -1,7 +1,7 @@
 import BaseEvent, { EventSource } from 'core/base-classes/event';
 
 /**
- * @typedef {BaseEvent}
+ * PossessedAdminCamera Event
  * @property {SquadPlayer} player - The player that entered admincam
  */
 

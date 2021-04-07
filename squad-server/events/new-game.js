@@ -2,7 +2,6 @@ import BaseEvent, { EventSource } from 'core/base-classes/event';
 
 /**
  * NewGame Event
- * @typedef {BaseEvent}
  *
  * TODO: Finish this Event
  *

@@ -2,7 +2,6 @@ import BaseEvent, { EventSource } from 'core/base-classes/event';
 
 /**
  * PlayerTeamChange Event
- * @typedef {BaseEvent}
  * @property {SquadPlayer} player - the player that switched teams
  * @property {string} oldTeamID - the id of the team the player switched from
  */

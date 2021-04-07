@@ -2,7 +2,6 @@ import BaseEvent, { EventSource } from 'core/base-classes/event';
 
 /**
  * PlayerConnected Event
- * @typedef {BaseEvent}
  * @property {SquadPlayer} player - The player that connected
  */
 

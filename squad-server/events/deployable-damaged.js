@@ -2,7 +2,6 @@ import BaseEvent, { EventSource } from 'core/base-classes/event';
 
 /**
  * DeployableDamaged Event
- * @typedef {BaseEvent}
  * @property {string} chainID - TODO: Document this
  * @property {string} deployable - deployable that was damaged
  * @property {string} weapon - Weapon used to dam

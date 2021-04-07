@@ -2,7 +2,6 @@ import BaseEvent, { EventSource } from 'core/base-classes/event';
 
 /**
  * PlayerBanned Event
- * @typedef {BaseEvent}
  * @property {SquadPlayer} player - The player that was banned
  * @property {string} interval - the ammount of time the player was banned for
  */

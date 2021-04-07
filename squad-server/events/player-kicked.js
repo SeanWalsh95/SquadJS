@@ -2,7 +2,6 @@ import BaseEvent, { EventSource } from 'core/base-classes/event';
 
 /**
  * PlayerKicked Event
- * @typedef {BaseEvent}
  * @property {SquadPlayer} player - The player that sent the message
  * @property {string} reason - the message that was sent to the player as a reason for being kicked
  */

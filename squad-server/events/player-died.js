@@ -2,7 +2,6 @@ import BaseEvent, { EventSource } from 'core/base-classes/event';
 
 /**
  * PlayerDied Event
- * @typedef {BaseEvent}
  * @property {SquadPlayer} victim - The player that was killed
  * @property {SquadPlayer} attacker - The player that killed the dead player
  */

@@ -2,7 +2,6 @@ import BaseEvent, { EventSource } from 'core/base-classes/event';
 
 /**
  * PlayerWarned Event
- * @typedef {BaseEvent}
  * @property {SquadPlayer} player - the player that was warned
  * @property {string} message - the message that was sent to the player as a warning
  */

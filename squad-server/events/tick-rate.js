@@ -2,7 +2,6 @@ import BaseEvent, { EventSource } from 'core/base-classes/event';
 
 /**
  * TickRate Event
- * @typedef {BaseEvent}
  * @property {string} chainID - TODO
  * @property {float} tickRate - Server Tickrate
  */

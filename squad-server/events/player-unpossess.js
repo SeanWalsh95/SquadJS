@@ -2,7 +2,6 @@ import BaseEvent, { EventSource } from 'core/base-classes/event';
 
 /**
  * PlayerUnpossess Event
- * @typedef {BaseEvent}
  * @property {string} chainID - TODO
  * @property {SquadPlayer} player - the player that possesed the item
  * @property {string} unpossessClassname - the classname of the item that was possesed

@@ -3,7 +3,6 @@ import ChatMessage from './ChatMessage';
 
 /**
  * ChatCommand Event
- * @typedef {ChatMessage} in
  * @property {string} command - The command that was used EX. !admin
  * @property {string} params - The parameters sent to the command EX. !admin <parameters>
  */
@@ -13,9 +12,7 @@ export default class ChatCommand extends ChatMessage {
     super(server, time, data);
     this.source = EventSource.RCON;
 
-    if (this.isCommand) {
-      this.command = this.isCommand[1];
-      this.params = this.isCommand[2].trim();
-    }
+    this.command = data.commandMatch[1];
+    this.params = data.commandMatch[2].trim();
   }
 }
